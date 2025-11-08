@@ -29,4 +29,4 @@ launch_cache.json
 .DS_Store
 Thumbs.db
 
-.venv
+.venv/
