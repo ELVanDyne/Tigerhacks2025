@@ -116,6 +116,25 @@ def get_launches():
         JSON response with launch data
     """
     data = fetch_launch_data()
+
+    # Attempt to read the cache timestamp from the cache file so the
+    # frontend can display when the data was last updated. If the cache
+    # file doesn't exist or can't be read, cached_ts will remain None.
+    cached_ts = None
+    try:
+        if os.path.exists(CACHE_FILE):
+            with open(CACHE_FILE, 'r') as f:
+                cache_data = json.load(f)
+                cached_ts = cache_data.get('timestamp')
+    except Exception:
+        cached_ts = None
+
+    # Attach the cached timestamp to the response body while preserving
+    # the original API shape. Tests expect `results`, so we only add a
+    # new top-level `cached_timestamp` key when the response is a dict.
+    if isinstance(data, dict):
+        data['cached_timestamp'] = cached_ts
+
     return jsonify(data)
 
 

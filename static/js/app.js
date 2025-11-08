@@ -123,9 +123,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     const launchCards = data.results.map(launch => createLaunchCard(launch));
                     launchesContainer.innerHTML = launchCards.join('');
                     
-                    // Update the last updated time
-                    const now = new Date();
-                    lastUpdateElement.textContent = now.toLocaleString();
+                    // Update the last updated time. Prefer the cached timestamp
+                    // provided by the backend (`cached_timestamp`) which reflects
+                    // when the data file was last written. Fall back to current
+                    // time if the field is missing.
+                    if (data.cached_timestamp) {
+                        try {
+                            const cachedDate = new Date(data.cached_timestamp);
+                            lastUpdateElement.textContent = cachedDate.toLocaleString();
+                        } catch (e) {
+                            // If parsing fails use the current time
+                            lastUpdateElement.textContent = new Date().toLocaleString();
+                        }
+                    } else {
+                        lastUpdateElement.textContent = new Date().toLocaleString();
+                    }
                 } else {
                     // No launches found
                     launchesContainer.innerHTML = '<p style="color: white; text-align: center;">No upcoming launches found.</p>';
