@@ -119,5 +119,8 @@ def get_launches():
 
 # Run the Flask app
 if __name__ == '__main__':
-    # Run in debug mode for development (disable in production)
+    # Run in debug mode for development
+    # WARNING: Never use debug=True in production! It allows arbitrary code execution.
+    # For production, use a production WSGI server like gunicorn:
+    # gunicorn -w 4 -b 0.0.0.0:5000 app:app
     app.run(debug=True, host='0.0.0.0', port=5000)
