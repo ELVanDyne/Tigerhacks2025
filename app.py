@@ -14,10 +14,16 @@ import os
 # Initialize Flask app
 app = Flask(__name__)
 
+
+
 # Configuration
 LAUNCH_LIBRARY_API_URL = "https://lldev.thespacedevs.com/2.3.0/launches/upcoming/"
+PREVIOUS_LAUNCHES_URL = "https://lldev.thespacedevs.com/2.3.0/launches/previous/"
+
+
 
 CACHE_FILE = "launch_cache.json"
+
 CACHE_DURATION = timedelta(minutes=5)  # Cache data for 1 hour
 
 
@@ -98,6 +104,23 @@ def fetch_launch_data():
         # Fall back to sample data if API is unavailable
         return load_sample_data()
 
+def fetch_previous_launch_data():
+    """
+    Fetch previous (past) launch data from Launch Library 2 API.
+    Falls back to sample data if API is unavailable.
+    """
+    try:
+        print("Fetching previous launch data from API...")
+        response = requests.get(PREVIOUS_LAUNCHES_URL, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        return data
+    except requests.RequestException as e:
+        print(f"Error fetching previous launch data: {e}")
+        return {"error": "Could not fetch previous launches", "results": []}
+
+
+#-----routes------
 
 @app.route('/')
 def index():
@@ -106,6 +129,10 @@ def index():
     """
     return render_template('index.html')
 
+
+@app.route('/previous')
+def previous():
+    return render_template('previous.html')
 
 @app.route('/api/launches')
 def get_launches():
@@ -136,6 +163,18 @@ def get_launches():
         data['cached_timestamp'] = cached_ts
 
     return jsonify(data)
+
+           
+@app.route('/api/previous')
+def get_previous_launches():
+    """
+    API endpoint to get previous launch data.
+    """
+    data = fetch_previous_launch_data()
+    return jsonify(data)
+
+
+
 
 
 # Run the Flask app

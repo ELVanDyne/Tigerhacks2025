@@ -5,12 +5,17 @@
  */
 
 // Wait for the page to fully load before running our code
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Get references to important elements on the page
     const launchesContainer = document.getElementById('launches-container');
     const loadingElement = document.getElementById('loading');
     const errorElement = document.getElementById('error');
     const lastUpdateElement = document.getElementById('last-update');
+
+    // NEW: Handle the click for the "Find Past Launches" button
+    launchesContainer.addEventListener('click', handleCompareClick);
+
+    // --- Helper Functions ---
 
     /**
      * Format a date string into a more readable format
@@ -19,11 +24,11 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function formatDate(dateString) {
         const date = new Date(dateString);
-        const options = { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric', 
-            hour: '2-digit', 
+        const options = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
             minute: '2-digit',
             timeZoneName: 'short'
         };
@@ -47,6 +52,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
+     * Creates HTML for the Previous Launches navigation button card.
+     * @returns {string} HTML string for the image button card.
+     */
+    function createNavButtonHtml() {
+        // We reuse the 'launch-card' class to ensure it integrates with the grid.
+        return `
+            <a href="/previous" class="nav-image-button launch-card">
+                <img src="{{ url_for('static', filename='img/past_missions_default.jpg') }}" 
+                     alt="Previous Launches Dashboard">
+                <span>Explore Past Missions 🚀</span>
+            </a>
+        `;
+    }
+
+    /**
      * Create HTML for a single launch card
      * @param {object} launch - Launch data object from API
      * @returns {string} HTML string for the launch card
@@ -59,11 +79,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const provider = launch.launch_service_provider?.name || 'Unknown Provider';
         const location = launch.pad?.location?.name || 'Unknown Location';
         const mission = launch.mission?.description || 'No mission description available.';
-        
+
+        // NEW: Get the location ID to use as a filter parameter
+        const locationId = launch.pad?.location?.id;
+
         // Truncate mission description if it's too long
         const maxDescriptionLength = 200;
-        const truncatedMission = mission.length > maxDescriptionLength 
-            ? mission.substring(0, maxDescriptionLength) + '...' 
+        const truncatedMission = mission.length > maxDescriptionLength
+            ? mission.substring(0, maxDescriptionLength) + '...'
             : mission;
 
         // Build the HTML for this launch card
@@ -91,9 +114,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     <strong>Mission:</strong>
                     <p>${truncatedMission}</p>
                 </div>
+
+                <button class="compare-btn" data-location-id="${locationId}" data-launch-name="${name}">
+                    Find Past Launches from this Site 🔎
+                </button>
             </div>
         `;
     }
+
+    /**
+     * Handles clicks on the "Find Past Launches" button, redirecting and passing the filter.
+     */
+    function handleCompareClick(event) {
+        const target = event.target;
+        // Check if the clicked element is a compare button
+        if (!target.classList.contains('compare-btn')) return;
+
+        const locationId = target.dataset.locationId;
+        const launchName = target.dataset.launchName;
+
+        if (locationId) {
+            // Redirect to /previous, passing the location ID and launch name as URL parameters
+            window.location.href = `/previous?filter_location_id=${locationId}&source_launch_name=${encodeURIComponent(launchName)}`;
+        } else {
+            alert('Location data is missing for this launch. Cannot filter past missions.');
+        }
+    }
+
 
     /**
      * Fetch launch data from our Flask backend and display it
@@ -117,7 +164,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Hide loading indicator
                 loadingElement.style.display = 'none';
 
-                // Check if we have any launches
+                // 1. Create launch cards HTML
+                const launchCardsHTML = data.results && data.results.length > 0
+                    ? data.results.map(launch => createLaunchCard(launch)).join('')
+                    : '';
+
+                // 2. Inject the Navigation Button HTML
+                const navButtonHTML = createNavButtonHtml();
+
+                // 3. Combine and display all content
                 if (data.results && data.results.length > 0) {
                     // Create a card for each launch
                     const launchCards = data.results.map(launch => createLaunchCard(launch));
@@ -139,8 +194,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         lastUpdateElement.textContent = new Date().toLocaleString();
                     }
                 } else {
-                    // No launches found
-                    launchesContainer.innerHTML = '<p style="color: white; text-align: center;">No upcoming launches found.</p>';
+                    // If no launches, display the button plus the 'No launches found' message
+                    launchesContainer.innerHTML = navButtonHTML +
+                        '<p style="color: white; text-align: center; grid-column: 1 / -1; margin-top: 2rem;">No upcoming launches found.</p>';
+
+                    // Update the last updated time even if no launches are found
+                    const now = new Date();
+                    lastUpdateElement.textContent = now.toLocaleString();
                 }
             })
             .catch(error => {
@@ -148,6 +208,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error fetching launches:', error);
                 loadingElement.style.display = 'none';
                 errorElement.style.display = 'block';
+                // Display the nav button even on error, so users can still navigate
+                launchesContainer.innerHTML = createNavButtonHtml();
             });
     }
 
