@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Previous Launches - Space Mission Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>Previous Launches</h1>
+    <p class="subtitle">Filter and explore past rocket launches</p>
+    <a href="/" class="nav-btn">⬅️ Back to Upcoming Launches</a> 
+  </header>
+
+  <div class="filters">
+    <label for="sort-date">Sort by Date:</label>
+    <select id="sort-date">
+        <option value="desc">Most Recent</option>
+        <option value="asc">Least Recent</option>
+    </select>
+
+    <label for="filter-provider">Provider:</label>
+    <select id="filter-provider">
+        <option value="all">All</option>
+    </select>
+
+    <label for="filter-status">Status:</label>
+    <select id="filter-status">
+        <option value="all">All</option>
+    </select>
+    
+    <label for="filter-location">Location:</label>
+    <select id="filter-location">
+        <option value="all">All</option>
+        </select>
+    <label for="filter-mission-type">Mission Type:</label>
+    <select id="filter-mission-type">
+        <option value="all">All</option>
+    </select>
+
+    <button id="recent-filter-btn">Show Recent (30 Days) 📅</button>
+
+    <button id="reset-filter-btn">Reset All Filters</button>
+</div>
+
+  <main class="container">
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Loading previous launches...</p>
+    </div>
+
+    <div id="error" class="error" style="display: none;">
+      <p>⚠️ Could not load previous launches. Please try again later.</p>
+    </div>
+
+    <div id="launches-container" class="launches-grid"></div>
+  </main>
+
+  <footer>
+    <p>Data provided by <a href="https://thespacedevs.com/" target="_blank">The Space Devs</a> - Launch Library 2 API</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/prev.js') }}"></script>
+</body>
+</html>
