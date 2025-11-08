@@ -28,3 +28,5 @@ launch_cache.json
 # OS
 .DS_Store
 Thumbs.db
+
+.venv

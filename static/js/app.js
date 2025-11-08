@@ -73,22 +73,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="status-badge ${getStatusClass(status)}">${status}</span>
                 
                 <div class="launch-detail">
-                    <strong>🕐 Launch Time:</strong>
+                    <strong>Launch Time:</strong>
                     <span>${formatDate(windowStart)}</span>
                 </div>
                 
                 <div class="launch-detail">
-                    <strong>🏢 Provider:</strong>
+                    <strong>Provider:</strong>
                     <span>${provider}</span>
                 </div>
                 
                 <div class="launch-detail">
-                    <strong>📍 Location:</strong>
+                    <strong>Location:</strong>
                     <span>${location}</span>
                 </div>
                 
                 <div class="mission-description">
-                    <strong>📋 Mission:</strong>
+                    <strong>Mission:</strong>
                     <p>${truncatedMission}</p>
                 </div>
             </div>
