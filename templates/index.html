@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Mission Tracker Dashboard</title>
+    <!-- Link to our custom CSS stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Main header of the page -->
+    <header>
+        <h1>🚀 Space Mission Tracker Dashboard</h1>
+        <p class="subtitle">Tracking upcoming space launches from around the world</p>
+    </header>
+
+    <!-- Main content container -->
+    <main class="container">
+        <!-- Loading indicator - shown while fetching data -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading launch data...</p>
+        </div>
+
+        <!-- Error message - shown if something goes wrong -->
+        <div id="error" class="error" style="display: none;">
+            <p>⚠️ Failed to load launch data. Please try again later.</p>
+        </div>
+
+        <!-- Container for launch cards -->
+        <div id="launches-container" class="launches-grid">
+            <!-- Launch cards will be dynamically added here by JavaScript -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>Data provided by <a href="https://thespacedevs.com/" target="_blank">The Space Devs</a> - Launch Library 2 API</p>
+        <p>Last updated: <span id="last-update">--</span></p>
+    </footer>
+
+    <!-- Link to our JavaScript file - placed at end for better page load performance -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
