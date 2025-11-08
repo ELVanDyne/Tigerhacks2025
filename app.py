@@ -15,9 +15,11 @@ import os
 app = Flask(__name__)
 
 # Configuration
-LAUNCH_LIBRARY_API_URL = "https://ll.thespacedevs.com/2.2.0/launch/upcoming/"
+LAUNCH_LIBRARY_API_URL = "https://lldev.thespacedevs.com/2.3.0/launches/upcoming/"
+
 CACHE_FILE = "launch_cache.json"
-CACHE_DURATION = timedelta(hours=1)  # Cache data for 1 hour
+CACHE_DURATION = timedelta(minutes=5)  # Cache data for 1 hour
+
 
 
 def load_cache():
