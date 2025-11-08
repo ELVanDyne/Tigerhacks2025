@@ -149,3 +149,39 @@ This project is open source and available for educational purposes.
 
 **Issue**: No launches showing up
 - **Solution**: Check your internet connection and the browser console (F12) for errors
+
+
+## 🧰 Local development
+
+Quick commands to create a virtual environment, install dependencies, run tests, and start the app (Linux / bash):
+
+```bash
+# create a venv in the project root
+python3 -m venv .venv
+
+# activate the venv
+source .venv/bin/activate
+
+# upgrade pip and install requirements
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+
+# (optional) install test tools
+pip install pytest
+
+# run the test suite
+pytest -q
+
+# start the Flask app
+python app.py
+
+# then open http://127.0.0.1:5000 in your browser
+```
+
+If you prefer not to activate the venv, you can run commands directly using the venv python/pip binaries:
+
+```
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m pytest -q
+.venv/bin/python app.py
+```
