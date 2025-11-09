@@ -134,6 +134,13 @@ def index():
 def previous():
     return render_template('previous.html')
 
+# filepath: /Users/tiyahjackman/Desktop/tiger hacks/Tigerhacks2025/app.py
+# ...existing code...
+@app.route('/simulation')
+def simulation():
+    return render_template('simulation.html')
+# ...existing code...
+
 @app.route('/api/launches')
 def get_launches():
     """
