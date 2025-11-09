@@ -372,6 +372,27 @@ header h1 {
     line-height: 1.6;
 }
 
+/* Add a small margin to paragraphs inside the description */
+.mission-description p {
+    margin-bottom: 0.25rem;
+}
+
+/* Style for the "Read More" / "Show Less" link */
+.toggle-mission-btn {
+    display: inline-block;
+    margin-top: 5px; /* Space between text and link */
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #007BFF; /* Match other buttons */
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.toggle-mission-btn:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
 /* Footer styling */
 footer {
     background-color: rgba(255, 255, 255, 0.95);
