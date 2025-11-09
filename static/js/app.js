@@ -16,6 +16,37 @@ document.addEventListener('DOMContentLoaded', function () {
     launchesContainer.addEventListener('click', handleCompareClick);
     // NEW: Handle the click for the "Read More" mission toggle
     launchesContainer.addEventListener('click', handleToggleMission);
+    launchesContainer.addEventListener('click', handleShareClick);
+
+    // --- Dropdown Menu Logic ---
+    const navButton = document.querySelector('.nav-btn');
+    const navContent = document.querySelector('.nav-dropdown-content');
+
+    if (navButton && navContent) {
+        navButton.addEventListener('click', function(event) {
+            // Stop the window click event from firing immediately
+            event.stopPropagation(); 
+            
+            // Toggle 'active' class on the button
+            navButton.classList.toggle('active');
+            // Toggle 'show' class on the content
+            navContent.classList.toggle('show');
+        });
+    }
+
+    // Close the dropdown if clicking anywhere else on the page
+    window.addEventListener('click', function(event) {
+        if (navContent && navButton) {
+            // Check if the click is outside the button AND outside the content
+            if (!navButton.contains(event.target) && !navContent.contains(event.target)) {
+                
+                // Remove classes to close the dropdown
+                navButton.classList.remove('active');
+                navContent.classList.remove('show');
+            }
+        }
+    });
+    // --- End Dropdown Menu Logic ---
 
     // --- Helper Functions ---
 
@@ -54,18 +85,47 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /**
-     * Creates HTML for the Previous Launches navigation button card.
-     * @returns {string} HTML string for the image button card.
+     * Creates a Google Calendar event link.
+     * @param {object} launch - Launch data object from API
+     * @returns {string} A URL for a new Google Calendar event
      */
-    function createNavButtonHtml() {
-        // We reuse the 'launch-card' class to ensure it integrates with the grid.
-        return `
-            <a href="/previous" class="nav-image-button launch-card">
-                <img src="{{ url_for('static', filename='img/past_missions_default.jpg') }}" 
-                     alt="Previous Launches Dashboard">
-                <span>Explore Past Missions</span>
-            </a>
-        `;
+    function createGoogleCalendarLink(launch) {
+        // Get the core data
+        const name = launch.name || 'Unknown Mission';
+        const windowStart = launch.window_start || launch.net;
+        const location = launch.pad?.location?.name || 'Unknown Location';
+        const mission = launch.mission?.description || 'No mission description available.';
+
+        // Google Calendar requires UTC datetimes in a specific format
+        // (YYYYMMDD'T'HHMMSS'Z')
+        // We can re-parse the ISO string to get a clean UTC format.
+        try {
+            const startDate = new Date(windowStart);
+            
+            // Format the start time. .toISOString() is ALMOST correct, 
+            // but we need to remove hyphens, colons, and milliseconds.
+            const googleStartDate = startDate.toISOString().replace(/[-:]|\.\d{3}/g, '');
+
+            // Let's create an end time (e.g., 1 hour after start) as a fallback
+            const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour later
+            const googleEndDate = endDate.toISOString().replace(/[-:]|\.\d{3}/g, '');
+
+            // Build the URL
+            const url = new URL('https://www.google.com/calendar/render');
+            url.searchParams.set('action', 'TEMPLATE');
+            url.searchParams.set('text', `${name}`);
+            url.searchParams.set('dates', `${googleStartDate}/${googleEndDate}`);
+            url.searchParams.set('details', `${mission}\n\nProvider: ${launch.launch_service_provider?.name}`);
+            url.searchParams.set('location', location);
+            url.searchParams.set('ctz', 'UTC'); // Specify dates are in UTC
+
+            return url.href;
+
+        } catch (e) {
+            // If the date is invalid, don't return a link
+            console.error('Could not parse date for calendar link:', windowStart);
+            return null;
+        }
     }
 
     /**
@@ -114,6 +174,35 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 `;
             }
+
+            // --- NEW: Calendar Link Logic ---
+        const calendarLink = createGoogleCalendarLink(launch);
+        let calendarButtonHtml = '';
+        if (calendarLink) {
+            // We use <a> styled as a button. target="_blank" opens in new tab.
+            calendarButtonHtml = `
+                <a href="${calendarLink}" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="calendar-btn">
+                    Add to Google Calendar
+                </a>
+            `;
+        }
+        // --- End of NEW Logic ---
+
+
+        const localTime = (windowStart !== 'TBD') ? formatDate(windowStart) : 'TBD';
+                    // --- NEW: Share Button Data ---
+        // We pass the formatted local time to the share button
+        const shareData = {
+            name: name,
+            provider: provider,
+            time: localTime
+            };
+
+
+
         // Build the HTML for this launch card
         return `
             <div class="launch-card">
@@ -137,9 +226,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 ${missionHtml}
 
-                <button class="compare-btn" data-location-id="${locationId}" data-launch-name="${name}">
-                    Find Past Launches from this Site 🔎
-                </button>
+                <div class="card-button-group">
+                    ${calendarButtonHtml}
+                    
+                    <button class="compare-btn" data-location-id="${locationId}" data-launch-name="${name}">
+                        Find Past Launches at This Location
+                    </button>
+
+                    <button class="share-btn" 
+                            data-name="${shareData.name}" 
+                            data-provider="${shareData.provider}" 
+                            data-time="${shareData.time}">
+                        Share Launch
+                    </button>
+                </div>
             </div>
         `;
     }
@@ -199,6 +299,72 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     /**
+     * Handles clicks on the "Share Launch" button.
+     * Uses Web Share API if available, otherwise copies to clipboard.
+     */
+    async function handleShareClick(event) {
+        const target = event.target;
+        // Check if the clicked element is a share button
+        if (!target.classList.contains('share-btn')) return;
+
+        // Get the launch data from the button's dataset
+        const { name, provider, time } = target.dataset;
+
+        // --- THIS IS THE FIX ---
+        // Combine the text and URL into a single string.
+        // This ensures all apps (clipboard, SMS, X) receive the full message.
+        const shareText = `Check out this launch: ${name} by ${provider} on ${time}. ${window.location.href}`;
+
+        // Create the shareData object.
+        // We will pass EITHER this object (to navigator.share)
+        // OR just the shareText (to clipboard)
+        const shareData = {
+            //title: `Rocket Launch: ${name}`,
+            text: shareText
+            // By omitting the 'url' field, we force the share sheet
+            // to use the 'text' field, which now contains the URL.
+        };
+        // --- END OF FIX ---
+
+
+        // 1. Try using the modern Web Share API
+        if (navigator.share) {
+            try {
+                // Pass the new object that only has .title and .text
+                await navigator.share(shareData);
+                console.log('Launch shared successfully');
+            } catch (err) {
+                // User might have canceled the share
+                console.log('Share canceled or failed:', err);
+            }
+        } 
+        // 2. Fallback to clipboard for desktop
+        else if (navigator.clipboard) {
+            try {
+                // Pass the new combined text
+                await navigator.clipboard.writeText(shareText); 
+                
+                // Give user feedback
+                const originalText = target.textContent;
+                target.textContent = 'Copied to Clipboard!';
+                target.classList.add('copied'); // For styling
+
+                setTimeout(() => {
+                    target.textContent = originalText;
+                    target.classList.remove('copied');
+                }, 2000); // Reset after 2 seconds
+
+            } catch (err) {
+                console.error('Failed to copy to clipboard:', err);
+                alert('Failed to copy. Please copy the text manually.');
+            }
+        } 
+        // 3. Absolute fallback
+        else {
+            alert('Sharing is not supported on this browser.');
+        }
+    }
+    /**
      * Fetch launch data from our Flask backend and display it
      */
     function fetchLaunches() {
@@ -225,8 +391,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     ? data.results.map(launch => createLaunchCard(launch)).join('')
                     : '';
 
-                // 2. Inject the Navigation Button HTML
-                const navButtonHTML = createNavButtonHtml();
 
                 // 3. Combine and display all content
                 if (data.results && data.results.length > 0) {
@@ -251,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 } else {
                     // If no launches, display the button plus the 'No launches found' message
-                    launchesContainer.innerHTML = navButtonHTML +
+                    launchesContainer.innerHTML =
                         '<p style="color: white; text-align: center; grid-column: 1 / -1; margin-top: 2rem;">No upcoming launches found.</p>';
 
                     // Update the last updated time even if no launches are found
@@ -265,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 loadingElement.style.display = 'none';
                 errorElement.style.display = 'block';
                 // Display the nav button even on error, so users can still navigate
-                launchesContainer.innerHTML = createNavButtonHtml();
+                launchesContainer.innerHTML = '';
             });
     }
 
