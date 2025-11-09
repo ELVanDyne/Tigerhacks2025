@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const sortDate = document.getElementById('sort-date');
     const filterProvider = document.getElementById('filter-provider');
     const filterMissionType = document.getElementById('filter-mission-type');
-    // 🌟 NEW: Location Filter Element
+    // NEW: Location Filter Element
     const filterLocation = document.getElementById('filter-location');
 
     // **EXISTING/NEW BUTTONS**
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let allLaunches = [];
 
-    // 🌟 NEW: Get URL parameters for pre-filtering (from Upcoming Launches page)
+    // NEW: Get URL parameters for pre-filtering (from Upcoming Launches page)
     const urlParams = new URLSearchParams(window.location.search);
     const filterLocationId = urlParams.get('filter_location_id');
     const sourceLaunchName = urlParams.get('source_launch_name');
@@ -127,22 +127,22 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
     }
 
-    // 🌟 NEW: Function to create the special "source" card 
+    // NEW: Function to create the special "source" card 
     function createSourceCard(name, locationId) {
         return `
             <div class="launch-card source-card" data-location-id="${locationId}">
-                <button class="source-card-reset-btn" id="source-card-reset-btn">❌</button>
+                <button class="source-card-reset-btn" id="source-card-reset-btn">X</button>
                 <h2 class="launch-name">Source Mission:</h2>
                 <h3 style="color:#f7f7f7; margin-bottom:1rem;">${decodeURIComponent(name)}</h3>
                 
                 <p>Showing past launches from this site only.</p>
-                <p style="font-size:0.9rem; color:#ccc;">Click ❌ to view all launches.</p>
+                <p style="font-size:0.9rem; color:#ccc;">Click X to view all launches.</p>
             </div>
         `;
     }
 
     /**
-     * 🌟 NEW: Populates the location filter dropdown with unique location names.
+     * NEW: Populates the location filter dropdown with unique location names.
      */
     function populateLocationFilter() {
         if (!filterLocation) return;
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function () {
         providers.forEach(p => filterProvider.innerHTML += `<option value="${p}">${p}</option>`);
         missionTypes.forEach(m => filterMissionType.innerHTML += `<option value="${m}">${m}</option>`);
 
-        // 🌟 Populate the new location filter
+        // Populate the new location filter
         populateLocationFilter();
     }
 
