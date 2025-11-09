@@ -69,6 +69,50 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /**
+     * Creates a Google Calendar event link.
+     * @param {object} launch - Launch data object from API
+     * @returns {string} A URL for a new Google Calendar event
+     */
+    function createGoogleCalendarLink(launch) {
+        // Get the core data
+        const name = launch.name || 'Unknown Mission';
+        const windowStart = launch.window_start || launch.net;
+        const location = launch.pad?.location?.name || 'Unknown Location';
+        const mission = launch.mission?.description || 'No mission description available.';
+
+        // Google Calendar requires UTC datetimes in a specific format
+        // (YYYYMMDD'T'HHMMSS'Z')
+        // We can re-parse the ISO string to get a clean UTC format.
+        try {
+            const startDate = new Date(windowStart);
+            
+            // Format the start time. .toISOString() is ALMOST correct, 
+            // but we need to remove hyphens, colons, and milliseconds.
+            const googleStartDate = startDate.toISOString().replace(/[-:]|\.\d{3}/g, '');
+
+            // Let's create an end time (e.g., 1 hour after start) as a fallback
+            const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour later
+            const googleEndDate = endDate.toISOString().replace(/[-:]|\.\d{3}/g, '');
+
+            // Build the URL
+            const url = new URL('https://www.google.com/calendar/render');
+            url.searchParams.set('action', 'TEMPLATE');
+            url.searchParams.set('text', `${name}`);
+            url.searchParams.set('dates', `${googleStartDate}/${googleEndDate}`);
+            url.searchParams.set('details', `${mission}\n\nProvider: ${launch.launch_service_provider?.name}`);
+            url.searchParams.set('location', location);
+            url.searchParams.set('ctz', 'UTC'); // Specify dates are in UTC
+
+            return url.href;
+
+        } catch (e) {
+            // If the date is invalid, don't return a link
+            console.error('Could not parse date for calendar link:', windowStart);
+            return null;
+        }
+    }
+
+    /**
      * Create HTML for a single launch card
      * @param {object} launch - Launch data object from API
      * @returns {string} HTML string for the launch card
@@ -114,6 +158,22 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 `;
             }
+
+            // --- NEW: Calendar Link Logic ---
+        const calendarLink = createGoogleCalendarLink(launch);
+        let calendarButtonHtml = '';
+        if (calendarLink) {
+            // We use <a> styled as a button. target="_blank" opens in new tab.
+            calendarButtonHtml = `
+                <a href="${calendarLink}" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="calendar-btn">
+                    Add to Google Calendar
+                </a>
+            `;
+        }
+        // --- End of NEW Logic ---
         // Build the HTML for this launch card
         return `
             <div class="launch-card">
@@ -137,9 +197,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 ${missionHtml}
 
-                <button class="compare-btn" data-location-id="${locationId}" data-launch-name="${name}">
-                    Find Past Launches from this Location
-                </button>
+                <div class="card-button-group">
+                    ${calendarButtonHtml}
+
+                    <button class="compare-btn" data-location-id="${locationId}" data-launch-name="${name}">
+                        Find Past Launches from this Location
+                    </button>
+                </div>
             </div>
         `;
     }
