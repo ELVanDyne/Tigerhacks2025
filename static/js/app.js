@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ${missionHtml}
 
                 <button class="compare-btn" data-location-id="${locationId}" data-launch-name="${name}">
-                    Find Past Launches from this Site 🔎
+                    Find Past Launches from this Location
                 </button>
             </div>
         `;
