@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orion's Path: A Space Odyssey (Final)</title>
+    <style>
+        /* --- CSS for Game Presentation --- */
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #game-container {
+            width: 90%;
+            max-width: 700px;
+            background-color: rgba(255, 0, 0, 0.5)
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(200, 181, 181, 0.5);
+            padding: 30px;
+            border: 2px solid #333;
+            position: relative;
+        }
+
+        h1 {
+            color: #d75038;
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h3 {
+            color: #a6e22e;
+            margin-top: 20px;
+        }
+
+        p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        #story-text {
+            min-height: 150px;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c7b527;
+            background-color: #2a2a2a;
+        }
+
+        /* Styling for the new audio player container */
+        #narration-player {
+            margin: 15px 0;
+            text-align: center;
+        }
+        #narration-player audio {
+            width: 100%;
+            max-width: 400px; 
+            
+            border-radius: 4px;
+        }
+
+        #choices button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #c7b527;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        #choices button:hover:not(:disabled) {
+            background-color: #cc0055;
+            transform: translateY(-2px);
+        }
+
+        #choices button:disabled {
+            background-color: #444;
+            cursor: not-allowed;
+        }
+
+        .fatal-outcome {
+            background-color: #ff0033;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            color: white;
+            margin-top: 20px;
+        }
+        
+        .narration-indicator {
+            color: #334fdc;
+            text-align: center;
+            font-style: italic;
+        }
+
+        /* Styles for YouTube Thumbnail */
+        .video-thumbnail-link {
+            display: block;
+            margin: 20px auto;
+            text-align: center;
+            text-decoration: none;
+            color: #66d9ef;
+        }
+        .video-thumbnail-link img {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 8px;
+            border: 2px solid #66d9ef;
+            transition: opacity 0.2s;
+        }
+        .video-thumbnail-link img:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body style="background-image: url('https://i.pinimg.com/originals/d6/ac/ee/d6acee4c22b5fac9541f8a2a74e0eb83.gif'); background-size: cover; background-repeat: no-repeat; background-attachment: fixed;">
+
+
+<div id="game-container">
+    <h1>Orion's Path: A Space Odyssey</h1>
+    <div id="story-text"></div>
+    <div id="narration-player"></div> 
+    <div id="choices"></div>
+</div>
+
+<iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/playlist/0T0P5bN8jjHVo1XMwznXfW?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+
+
+<script>
+    // --- JAVASCRIPT GAME LOGIC ---
+    
+    // =========================================================================
+    // 🛑 CRITICAL: REPLACE "YOUR_SECURELY_MANAGED_API_KEY" WITH YOUR REAL KEY
+    const ELEVENLABS_API_KEY = "2bd51490ba1bb7c184cd5d84f82ba9978ee12b814c91fb180ad2507583f48669"; 
+    const VOICE_ID = "zNsotODqUhvbJ5wMG7Ei"; 
+    // =========================================================================
+
+    const storyTextDiv = document.getElementById('story-text');
+    const choicesContainer = document.getElementById('choices');
+    const narrationPlayerDiv = document.getElementById('narration-player');
+    
+    // All game data must be defined before use
+    let gameState = { stage: 0, specialty: null, birthEra: null, critique: null, missionType: null };
+    
+    // --- UTILITY FUNCTIONS ---
+
+    function renderMarkdown(text) {
+        if (!text) return '';
+        // Handles bolding and replaces <hr> tag with a line
+        return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    }
+    
+    function stopAndClearAudio() {
+        narrationPlayerDiv.innerHTML = '';
+    }
+
+    // Function to call ElevenLabs API and insert the <audio> element
+    async function narrateText(text) {
+        stopAndClearAudio();
+
+        if (ELEVENLABS_API_KEY === "YOUR_SECURELY_MANAGED_API_KEY" || !VOICE_ID) {
+            console.warn("ElevenLabs API key is a placeholder or not set. Skipping narration.");
+            return null;
+        }
+        
+        const url = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`;
+        // Clean HTML tags and markdown bolding from text sent to API
+        const cleanText = String(text).replace(/<[^>]*>?/gm, '').replace(/\*\*/g, '');
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'xi-api-key': ELEVENLABS_API_KEY,
+                    'Content-Type': 'application/json',
+                    'Accept': 'audio/mpeg' 
+                },
+                body: JSON.stringify({
+                    text: cleanText,
+                    model_id: "eleven_monolingual_v1",
+                    voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+                })
+            });
+
+            if (!response.ok) {
+                let errorMsg = `Narration API failed with status ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMsg += `: ${errorData.detail || JSON.stringify(errorData)}`;
+                } catch (e) {}
+                throw new Error(errorMsg); 
+            }
+
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            // --- INSERT NATIVE <AUDIO> ELEMENT ---
+            const audioHTML = `
+                <audio controls>
+                    <source src="${audioUrl}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            `;
+            narrationPlayerDiv.innerHTML = audioHTML;
+            return narrationPlayerDiv.querySelector('audio');
+
+        } catch (error) {
+            console.error("Narration API Error:", error.message);
+            throw error; 
+        }
+    }
+    
+    function displayChoices(choices) {
+        choicesContainer.innerHTML = '';
+        
+        choices.forEach(choice => {
+            const button = document.createElement('button');
+            button.textContent = choice.text;
+            button.onclick = choice.action;
+            choicesContainer.appendChild(button);
+        });
+    }
+
+    // --- DISASTER DATA FOR STAGE 3 ---
+    const disasterData = {
+        // 1950s Disaster: Vanguard TV3
+        '50s': {
+            missionName: 'Vanguard TV3 (1957)',
+            missionType: 'Vanguard',
+            youtubeId: 'QzLF3Bt7b7M',
+            text: "You are assigned to the **Vanguard TV3** launch, America's first satellite attempt. The rocket is fragile, the pressure is immense. Just before launch, your team reports a propellant leak.",
+            choices: [
+                { text: "1. The leak is minor, recommend proceeding immediately to meet the public deadline.", action: () => resolve('MinorLeak') },
+                { text: "2. Recommend an immediate scrub, citing the high potential for **Propellant Tank Rupture**.", action: () => resolve('Fuel') },
+                { text: "3. Recommend proceeding, citing that the **Ground Control Safety Systems** will abort if failure occurs.", action: () => resolve('GroundSafety') }
+            ]
+        },
+        // 1960s Disaster: Apollo 1
+        '60s': {
+            missionName: 'Apollo 1 (1967)',
+            missionType: 'Apollo',
+            youtubeId: '3DV7cVJHUh4',
+            text: "You are crew for **Apollo 1**. During the 'plugs-out' test, numerous technical issues arise. The final go/no-go is given while you sit in the cabin, sealed, breathing **100% pure oxygen**.",
+            choices: [
+                { text: "1. Focus on the persistent radio static. Recommend a delay for **Communications Checkout**.", action: () => resolve('Comms') },
+                { text: "2. Focus on the interior materials. Recommend a full replacement of the **Flammable Cabin Materials** and atmosphere protocol.", action: () => resolve('Atmosphere') },
+                { text: "3. Focus on the schedule pressure. Recommend proceeding, but logging the **Slow Hatch Egress** issue.", action: () => resolve('Hatch') }
+            ]
+        },
+        // 1970s, 1980s Default: Challenger STS-51L
+        '70s': {
+            missionName: 'The Soyuz 11',
+            missionType: 'Soyuz',
+            youtubeId: 'Z4oiYtvavTY',
+            text: "You are assigned to **The Soyuz 11 (Soyuz)**. The day before launch, the cold weather forecast causes anomalies. Your commander asks for your final recommendation.",
+            choices: [
+                { text: "1. Safety Concern (Electrical Wiring): Recommend a 24-hour delay for a low-temp electrical check.", action: () => resolve('Wiring') },
+                { text: "2. Safety Concern (Oxygen Tank Insulation): You recommend proceeding, logging the issue for post-flight review.", action: () => resolve('Oxygen') },
+                { text: "3. Safety Concern (**Booster Seals/O-Rings**): You passionately argue for an immediate, indefinite scrub until temperatures rises.", action: () => resolve('Seals') }
+            ]
+        },
+        '80s': {
+            missionName: 'Challenger STS-51L (1986)',
+            missionType: 'Challenger',
+            youtubeId: 'iRTN804mOYE',
+            text: "You are assigned to **Mission STS-51L (Challenger)**. The day before launch, the cold weather forecast causes anomalies. Your commander asks for your final recommendation.",
+            choices: [
+                { text: "1. Safety Concern (Electrical Wiring): Recommend a 24-hour delay for a low-temp electrical check.", action: () => resolve('Wiring') },
+                { text: "2. Safety Concern (Oxygen Tank Insulation): You recommend proceeding, logging the issue for post-flight review.", action: () => resolve('Oxygen') },
+                { text: "3. Safety Concern (**Booster Seals/O-Rings**): You passionately argue for an immediate, indefinite scrub until temperatures rises.", action: () => resolve('Seals') }
+            ]
+        },
+        // 1990s New Disaster: Long March 3B explosion
+        '90s': {
+            missionName: 'Long March 3B (Intelsat 708) (1996)',
+            missionType: 'LongMarch',
+            youtubeId: 'LAyOhUYIbd4', 
+            text: "You are part of the independent review team for the Long March 3B rocket carrying the US-built Intelsat 708 satellite. The maiden launch is scheduled for the early morning. Moments before launch, telemetry indicates a persistent anomaly in the **guidance system**.",
+            choices: [
+                { text: "1. Focus on the main booster system. Recommend delaying the launch to check for **Propellant Line Leaks**.", action: () => resolve('Fuel') },
+                { text: "2. Focus on the control systems. Argue for an immediate scrub to diagnose the possible **Inertial Measurement Unit (IMU) Fault**.", action: () => resolve('IMU') },
+                { text: "3. Focus on the launch window. Recommend proceeding immediately to make the launch window, citing the anomaly as minor telemetry noise.", action: () => resolve('Proceed') }
+            ]
+        }
+    };
+
+
+    // --- STORY STAGES ---
+    // Total Stages: 0, 1, 2, 3 (4 total, indices 0-3)
+    const gameStages = [
+        // Stage 0: Birth Era 
+        {
+            text: "Welcome, aspirant. The decade you are born sets the stage for your ultimate mission and the inherent risks of that era. Choose your **Birth Decade**:",
+            choices: [
+                { text: "1. The Fifties (1950s): Pioneer (Early Experimental Rockets)", action: () => advance(1, { birthEra: '50s' }) },
+                { text: "2. The Sixties (1960s): Bridge Builder (Apollo/Early Space Stations)", action: () => advance(1, { birthEra: '60s' }) },
+                { text: "3. The Seventies (1970s): Shuttle Veteran (Early Shuttle/Skylab)", action: () => advance(1, { birthEra: '70s' }) },
+                { text: "4. The Eighties (1980s): ISS Architect (Shuttle/Mir/ISS)", action: () => advance(1, { birthEra: '80s' }) },
+                { text: "5. The Nineties (1990s): Commercial Explorer (Modern/Commercial Crew)", action: () => advance(1, { birthEra: '90s' }) }
+            ]
+        },
+        // Stage 1: Education 
+        {
+            text: "You excel in your field and are selected for the astronaut corps. Your specialization determines the kind of technical flaw you are trained to spot. Choose Your Specialization:",
+            choices: [
+                { text: "1. Propulsion Specialist: Expertise: Engine thrust and fuel systems.", action: () => advance(2, { specialty: 'Propulsion' }) },
+                { text: "2. Environmental Controls Specialist: Expertise: Cabin atmosphere and pressure.", action: () => advance(2, { specialty: 'ECLSS' }) },
+                { text: "3. Structural Engineer: Expertise: Body integrity and seals/joints.", action: () => advance(2, { specialty: 'Structural' }) }
+            ]
+        },
+        // Stage 2: Mission Assignment (FINAL DECISION PREP)
+        {
+            text: "Your skills are highly valued. Before your first mission, you are assigned a critical ground-support task that leverages your expertise. This defines the flaw you are most acutely aware of. **Choose the critical area you will focus on**:",
+            choices: [
+                { text: "1. Focus on Propellant Lines and Seals.", action: () => advance(3, { critique: 'Fuel' }) },
+                { text: "2. Focus on Pure Oxygen Atmosphere Protocol and Hatch Latches.", action: () => advance(3, { critique: 'Atmosphere' }) },
+                { text: "3. Focus on Booster Case Joints and Thermal Protection.", action: () => advance(3, { critique: 'Seals' }) }
+            ]
+        },
+
+        // --- STAGE 3: DYNAMIC DISASTER DECISION ---
+        {
+            // Text is a function now, needs to be called to get the correct data
+            text: (era) => {
+                const data = disasterData[era] || disasterData['default'];
+                return `Assignment accepted: You are now at the critical decision point for **Mission ${data.missionName}**.<hr>${data.text}`;
+            },
+            // Choices is a function now, needs to be called to get the correct buttons
+            choices: (era) => {
+                const data = disasterData[era] || disasterData['default'];
+                return data.choices;
+            }
+        }
+    ];
+
+    // --- GAME CONTROL FUNCTIONS ---
+    
+    async function advance(nextStage, newState = {}) {
+        
+        // BOUNDARY FIX: Check for invalid stage index (0 to 3)
+        if (nextStage < 0 || nextStage >= gameStages.length) {
+            console.error("Game attempted to navigate to an invalid stage:", nextStage);
+            return; 
+        }
+        
+        stopAndClearAudio(); 
+
+        gameState.stage = nextStage;
+        gameState = { ...gameState, ...newState };
+        
+        const stageData = gameStages[gameState.stage];
+        
+        let displayHTML = '';
+        let narrationText = '';
+        let choicesToDisplay = [];
+
+        // Dynamic Stage 3 handles text and choices differently
+        if (gameState.stage === 3) {
+            // Determine the correct era key for the disasterData lookup
+            const eraKey = gameState.birthEra; 
+            
+            // Text is a function now, needs to be called
+            displayHTML = stageData.text(eraKey); 
+            narrationText = displayHTML.replace(/<hr>|<[^>]*>?/gm, ''); // Clean HTML for narration
+            
+            // Choices is a function now, needs to be called
+            choicesToDisplay = stageData.choices(eraKey); 
+            
+            // Store mission data for the resolve function
+            const currentMission = disasterData[eraKey];
+            gameState.missionType = currentMission.missionType;
+
+        } else {
+            // Standard stages 0, 1, 2
+            displayHTML = stageData.text;
+            narrationText = displayHTML;
+            choicesToDisplay = stageData.choices;
+        }
+
+        storyTextDiv.innerHTML = renderMarkdown(displayHTML);
+        choicesContainer.innerHTML = '<p class="narration-indicator">Loading Narration...</p>';
+
+        try {
+            const audioElement = await narrateText(narrationText);
+            
+            if (audioElement) {
+                choicesContainer.innerHTML = '<p class="narration-indicator">Narration Loaded. Press Play on the controls to listen.</p>';
+            } else if (ELEVENLABS_API_KEY === "YOUR_SECURELY_MANAGED_API_KEY") {
+                choicesContainer.innerHTML = '<p class="narration-indicator">Narration disabled (Placeholder API Key)</p>';
+            } else {
+                choicesContainer.innerHTML = '<p class="narration-indicator">Narration Not Available.</p>';
+            }
+            displayChoices(choicesToDisplay);
+            
+        } catch (error) {
+            storyTextDiv.innerHTML += `<p style="color:red; font-style:italic;">(Narration failed: ${error.message}. Proceeding without sound.)</p>`;
+            displayChoices(choicesToDisplay);
+        }
+    }
+
+    // --- RESOLVE OUTCOME FUNCTION ---
+    function resolve(decision) {
+        stopAndClearAudio();
+        choicesContainer.innerHTML = '';
+        let resultHTML = '';
+        let narrationText = '';
+        
+        // Get the full data object for the current mission from the state
+        const currentMissionData = disasterData[gameState.birthEra];
+        const missionType = currentMissionData.missionType;
+        const missionName = currentMissionData.missionName;
+        const youtubeId = currentMissionData.youtubeId;
+
+        // 1. APOLLO 1 (60s) 
+        if (missionType === 'Apollo') {
+            if (decision === 'Atmosphere' && gameState.critique === 'Atmosphere') {
+                resultHTML = `<p style="color:#00ffcc; font-weight:bold;">MISSION INTERVENTION: ATMOSPHERE PROTOCOL REVISED</p><p>Your expertise on Environmental Controls and passionate warning about the **pure oxygen/flammable materials** environment forces a full safety review. The test is scrubbed. All three lives are saved. You become an eternal safety hero.</p>`;
+                narrationText = "Mission Intervention. Your warning about the pure oxygen and flammable materials forces a full safety review. The test is scrubbed. All three lives are saved. You become an eternal safety hero.";
+            } else {
+                resultHTML = `<p class="fatal-outcome">MISSION STATUS: LOSS OF CREW</p><p>During the test, a spark ignites the highly pressurized **pure oxygen atmosphere**. The fire spreads instantly. All three astronauts perish in the flash fire. **Game Over.**</p>`;
+                narrationText = "Mission Status: Loss of Crew. During the test, a spark ignites the pure oxygen atmosphere. The fire spreads instantly. All three astronauts perish. Game Over.";
+            }
+
+        // 2. VANGUARD TV3 (50s) 
+        } else if (missionType === 'Vanguard') {
+            if (decision === 'Fuel' && gameState.critique === 'Fuel') {
+                 resultHTML = `<p style="color:#00ffcc; font-weight:bold;">MISSION INTERVENTION: LAUNCH SCRUBBED</p><p>Your Propellant expertise confirms the leak is severe and the risk of **Tank Rupture** is too high. You successfully argue for a scrub. A humiliating explosion is avoided.</p>`;
+                narrationText = "Mission Intervention. Your expertise confirms the leak is too high. The launch is scrubbed. A humiliating launchpad explosion is avoided and the mission is later successful. Your job is secured.";
+            } else {
+                 resultHTML = `<p class="fatal-outcome">MISSION STATUS: COMPLETE FAILURE</p><p>The Flight Director gives the GO. At **T+2 seconds**, the vehicle loses thrust, falls back onto the pad, and explodes in a massive fireball. The mission is a failure and a national embarrassment known as 'Flopnik'. **Game Over.**</p>`;
+                narrationText = "Mission Status: Complete Failure. The Flight Director gives the GO. At T plus 2 seconds, the vehicle loses thrust, falls onto the pad, and explodes in a massive fireball. Game Over.";
+            }
+
+        // 3. CHALLENGER STS-51L (70s/80s) 
+        } else if (missionType === 'Challenger') {
+            if (decision === 'Seals' && gameState.critique === 'Seals') {
+                resultHTML = `<p style="color:#00ffcc; font-weight:bold;">MISSION INTERVENTION: LAUNCH SCRUBBED</p><p>Your structural critique on the cold-degraded **Solid Rocket Booster O-rings** is too strong to ignore. The launch is scrubbed indefinitely. You've saved the crew of **STS-51L**.</p>`;
+                narrationText = "Mission Intervention. Your structural critique on the cold-degraded O-rings is accepted. The launch is scrubbed indefinitely. You've saved the crew and earned a reputation as a vital safety guardian.";
+            } 
+            else if (decision === 'Wiring') {
+                resultHTML = `<p style="color:#00ff00; font-weight:bold;">MISSION SUCCESS (DELAYED)</p><p>Your argument for a 24-hour delay is compelling. The mission launches successfully two days later when temperatures are safe. You've survived the **Challenger disaster** by finding an alternate, plausible-sounding safety violation!</p>`;
+                narrationText = "Mission Success Delayed. Your argument for a 24-hour delay is accepted. The mission launches successfully two days later when temperatures are safe. You've survived the Challenger disaster! Your career continues.";
+            } else {
+                 resultHTML = `<p class="fatal-outcome">MISSION STATUS: LOSS OF CREW</p><p>The pressure to launch overrides your minor concerns. At **T+73 seconds**, the flame breaches the **SRB O-ring seal** and the Space Shuttle **Challenger** is engulfed in a catastrophic explosion. **Game Over.**</p>`;
+                narrationText = "The decision is made: Proceed. At T plus 73 seconds, the flame breaches the SRB O-ring seal, and the Space Shuttle Challenger is engulfed in a catastrophic explosion. Mission Status: Loss of Crew. Game Over.";
+            }
+        }
+
+        else if (missionType === 'soyuz') {
+            if (decision === 'Seals' && gameState.critique === 'Seals') {
+                resultHTML = `<p style="color:#00ffcc; font-weight:bold;">MISSION INTERVENTION: LAUNCH SCRUBBED</p><p>Your structural critique on the cold-degraded **Solid Rocket Booster O-rings** is too strong to ignore. The launch is scrubbed indefinitely. You've saved the crew of **STS-51L**.</p>`;
+                narrationText = "Mission Intervention. Your structural critique on the cold-degraded O-rings is accepted. The launch is scrubbed indefinitely. You've saved the crew and earned a reputation as a vital safety guardian.";
+            } 
+            else if (decision === 'Wiring') {
+                resultHTML = `<p style="color:#00ff00; font-weight:bold;">MISSION SUCCESS (DELAYED)</p><p>Your argument for a 24-hour delay is compelling. The mission launches successfully two days later when temperatures are safe. You've survived the **Challenger disaster** by finding an alternate, plausible-sounding safety violation!</p>`;
+                narrationText = "Mission Success Delayed. Your argument for a 24-hour delay is accepted. The mission launches successfully two days later when temperatures are safe. You've survived the Challenger disaster! Your career continues.";
+            } else {
+                 resultHTML = `<p class="fatal-outcome">MISSION STATUS: LOSS OF CREW</p><p>The pressure to launch overrides your minor concerns. At **T+73 seconds**, the flame breaches the **SRB O-ring seal** and the Space Shuttle **Challenger** is engulfed in a catastrophic explosion. **Game Over.**</p>`;
+                narrationText = "The decision is made: Proceed. At T plus 73 seconds, the flame breaches the SRB O-ring seal, and the Space Shuttle Challenger is engulfed in a catastrophic explosion. Mission Status: Loss of Crew. Game Over.";
+            }
+        
+        }
+
+        // 4. LONG MARCH 3B (90s)
+        else if (missionType === 'LongMarch') {
+            if (decision === 'IMU' && gameState.critique === 'Atmosphere') {
+                // The IMU failure is a low-level quality issue (like poor soldering/broken wire) which, by a stretch, a detail-oriented ECLSS specialist might find during system inspection.
+                resultHTML = `<p style="color:#00ffcc; font-weight:bold;">MISSION INTERVENTION: GUIDANCE SYSTEM SCRUB</p><p>Your meticulous attention to systems (normally Environmental) leads you to find a subtle anomaly in the **Inertial Measurement Unit (IMU)** telemetry. You force a scrub, and investigators later find a **faulty soldering joint**. You prevent the catastrophic crash into the village.</p>`;
+                narrationText = "Mission Intervention. Your attention to detail reveals an anomaly in the Inertial Measurement Unit telemetry. You force a scrub, and investigators find a faulty soldering joint. You prevent the catastrophic crash into the village.";
+            } else if (decision === 'Fuel') {
+                resultHTML = `<p style="color:#00ff00; font-weight:bold;">MISSION SUCCESS (DELAYED)</p><p>You recommend a scrub based on a minor fuel pressure fluctuation. The scrub leads to a comprehensive systems check, where the IMU fault is discovered incidentally. The launch is successful one week later. You survive due to your cautious nature!</p>`;
+                narrationText = "Mission Success Delayed. You recommend a scrub based on minor fuel pressure. A comprehensive system check finds the IMU fault. The launch is successful one week later. You survive due to your cautious nature.";
+            }
+            else {
+                 resultHTML = `<p class="fatal-outcome">MISSION STATUS: CATASTROPHIC FAILURE</p><p>The Flight Director gives the GO. Two seconds after liftoff, the rocket veers wildly off course and crashes into a nearby village. The subsequent explosion is massive, destroying the payload and causing numerous casualties. **Game Over.**</p>`;
+                narrationText = "Mission Status: Catastrophic Failure. Two seconds after liftoff, the rocket veers off course and crashes into a nearby village. The subsequent explosion is massive. Game Over.";
+            }
+        }
+        
+        // --- DISPLAY FINAL RESULT AND VIDEO LINK ---
+        storyTextDiv.innerHTML = renderMarkdown(`<h3>Final Outcome: Mission ${missionName}</h3>${resultHTML}`);
+        
+        if (youtubeId) {
+            const youtubeLink = `https://www.youtube.com/watch?v=${youtubeId}`;
+            const thumbnailUrl = `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
+            
+            const videoLinkHTML = `
+                <hr>
+                <p style="text-align:center; color:#a6e22e;">Click to watch the full historical context:</p>
+                <a href="${youtubeLink}" target="_blank" class="video-thumbnail-link">
+                    <img src="${thumbnailUrl}" alt="Thumbnail for ${missionName} Disaster Video">
+                    <p>Watch: **${missionName} Disaster Explanation**</p>
+                </a>
+            `;
+            storyTextDiv.innerHTML += videoLinkHTML;
+        }
+
+        // Narrate the outcome 
+        narrateText(narrationText)
+            .then(() => showRestartButton())
+            .catch(() => showRestartButton()); 
+    }
+    
+    function showRestartButton() {
+        choicesContainer.innerHTML = '';
+        const restartButton = document.createElement('button');
+        restartButton.textContent = "Start New Journey";
+        restartButton.onclick = () => window.location.reload();
+        choicesContainer.appendChild(restartButton);
+    }
+
+    // Initialize the game
+    document.addEventListener('DOMContentLoaded', () => {
+        advance(0);
+    });
+</script>
+
+</body>
+</html>
