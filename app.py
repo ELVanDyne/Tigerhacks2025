@@ -24,7 +24,7 @@ PREVIOUS_LAUNCHES_URL = "https://lldev.thespacedevs.com/2.3.0/launches/previous/
 
 CACHE_FILE = "launch_cache.json"
 
-CACHE_DURATION = timedelta(minutes=5)  # Cache data for 1 hour
+CACHE_DURATION = timedelta(minutes=5)  # Cache data for 5 minutes (We get 15 free api calls to the regular version per hour so a cache of five minutes keeps us under that limit.)
 
 
 
