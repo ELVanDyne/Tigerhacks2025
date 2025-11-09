@@ -134,6 +134,12 @@ def index():
 def previous():
     return render_template('previous.html')
 
+
+@app.route('/simulation')
+def simulation():
+    return render_template('simulation.html')
+
+
 @app.route('/api/launches')
 def get_launches():
     """
