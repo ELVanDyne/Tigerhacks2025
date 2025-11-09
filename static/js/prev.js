@@ -6,13 +6,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Filter elements
     const sortDate = document.getElementById('sort-date');
     const filterProvider = document.getElementById('filter-provider');
-    const filterStatus = document.getElementById('filter-status');
     const filterMissionType = document.getElementById('filter-mission-type');
     // 🌟 NEW: Location Filter Element
     const filterLocation = document.getElementById('filter-location');
 
     // **EXISTING/NEW BUTTONS**
-    const recentBtn = document.getElementById('recent-filter-btn');
     const resetBtn = document.getElementById('reset-filter-btn');
 
     let allLaunches = [];
@@ -111,10 +109,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Populate existing filters
         filterProvider.innerHTML = '<option value="all">All</option>';
-        filterStatus.innerHTML = '<option value="all">All</option>';
         filterMissionType.innerHTML = '<option value="all">All</option>';
         providers.forEach(p => filterProvider.innerHTML += `<option value="${p}">${p}</option>`);
-        statuses.forEach(s => filterStatus.innerHTML += `<option value="${s}">${s}</option>`);
         missionTypes.forEach(m => filterMissionType.innerHTML += `<option value="${m}">${m}</option>`);
 
         // 🌟 Populate the new location filter
@@ -132,7 +128,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Reset all filter dropdowns to their 'All' option
         filterProvider.value = 'all';
-        filterStatus.value = 'all';
         filterMissionType.value = 'all';
         if (filterLocation) filterLocation.value = 'all'; // 🌟 Reset location filter
 
@@ -145,18 +140,6 @@ document.addEventListener('DOMContentLoaded', function () {
         renderLaunches();
     }
 
-
-    function filterByRecent() {
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-        // First, reset all other filters to show a clean 'Recent' view
-        resetFilters();
-
-        // You'll need to update this to call renderLaunches() after setting a 'recent' flag
-        // For simplicity now, let's just trigger a re-render.
-        renderLaunches();
-    }
 
 
     // **UPDATED FUNCTION:** Filter and render launches
@@ -177,9 +160,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // 3. Existing Dropdown Filtering
         if (filterProvider.value !== 'all') {
             filtered = filtered.filter(l => l.launch_service_provider?.name === filterProvider.value);
-        }
-        if (filterStatus.value !== 'all') {
-            filtered = filtered.filter(l => l.status?.name === filterStatus.value);
         }
         if (filterMissionType.value !== 'all') {
             filtered = filtered.filter(l => l.mission?.type === filterMissionType.value);
@@ -254,14 +234,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // Add event listeners for filters (change events)
-    [sortDate, filterProvider, filterStatus, filterMissionType, filterLocation].forEach(el => {
+    [sortDate, filterProvider, filterMissionType, filterLocation].forEach(el => {
         if (el) el.addEventListener('change', renderLaunches);
     });
 
     // Event Listeners for buttons
-    if (recentBtn) {
-        recentBtn.addEventListener('click', filterByRecent);
-    }
     if (resetBtn) {
         resetBtn.addEventListener('click', resetFilters);
     }

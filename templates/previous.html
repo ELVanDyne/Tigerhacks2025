@@ -10,39 +10,37 @@
   <header>
     <h1>Previous Launches</h1>
     <p class="subtitle">Filter and explore past rocket launches</p>
-    <a href="/" class="nav-btn">⬅️ Back to Upcoming Launches</a> 
+    <a href="/" class="nav-btn">Back to Upcoming Launches</a> 
   </header>
 
-  <div class="filters">
-    <label for="sort-date">Sort by Date:</label>
-    <select id="sort-date">
-        <option value="desc">Most Recent</option>
-        <option value="asc">Least Recent</option>
-    </select>
+  <div class="filters filter-toolbar">
 
-    <label for="filter-provider">Provider:</label>
-    <select id="filter-provider">
+    <div class="filter-row">
+      <label for="filter-provider">Provider</label>
+      <select id="filter-provider" class="filter-select">
         <option value="all">All</option>
-    </select>
-
-    <label for="filter-status">Status:</label>
-    <select id="filter-status">
-        <option value="all">All</option>
-    </select>
+      </select>
+    </div>
     
-    <label for="filter-location">Location:</label>
-    <select id="filter-location">
+    <div class="filter-row">
+      <label for="filter-location">Location</label>
+      <select id="filter-location" class="filter-select">
         <option value="all">All</option>
-        </select>
-    <label for="filter-mission-type">Mission Type:</label>
-    <select id="filter-mission-type">
+      </select>
+    </div>
+
+    <div class="filter-row">
+      <label for="filter-mission-type">Mission Type</label>
+      <select id="filter-mission-type" class="filter-select">
         <option value="all">All</option>
-    </select>
+      </select>
+    </div>
 
-    <button id="recent-filter-btn">Show Recent (30 Days) 📅</button>
+    <div class="filter-actions">
+      <button id="reset-filter-btn" class="filter-btn filter-btn--ghost">Reset</button>
+    </div>
 
-    <button id="reset-filter-btn">Reset All Filters</button>
-</div>
+  </div>
 
   <main class="container">
     <div id="loading" class="loading">
@@ -51,7 +49,7 @@
     </div>
 
     <div id="error" class="error" style="display: none;">
-      <p>⚠️ Could not load previous launches. Please try again later.</p>
+      <p>Could not load previous launches. Please try again later.</p>
     </div>
 
     <div id="launches-container" class="launches-grid"></div>

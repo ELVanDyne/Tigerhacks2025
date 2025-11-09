@@ -413,3 +413,103 @@ footer p {
         margin: 1rem auto;
     }
 }
+
+/* ------------------------------- */
+/* Filter toolbar (previous.html)   */
+/* ------------------------------- */
+.filter-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-end;
+    /* center and limit width to match .container */
+    width: 100%;
+    max-width: 1200px;
+    margin: 1.25rem auto;
+    padding: 0.75rem 1rem;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+    color: #f7f7f7;
+}
+
+.filter-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 180px;
+}
+
+.filter-row label {
+    color: inherit;
+    font-weight: 600;
+}
+
+.filter-select {
+    padding: 0.5rem 0.6rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    /* darker background so white text is readable when dropdown is open */
+    background: rgba(0,0,0,0.6);
+    color: #f7f7f7;
+    font-size: 0.95rem;
+}
+
+/* Dropdown option styling (best-effort - browser support varies) */
+.filter-select option {
+    background: #111;
+    color: #f7f7f7;
+}
+
+/* On some platforms the select arrow/caret can be hard to see; ensure contrast */
+.filter-select::-ms-expand { color: #f7f7f7; }
+
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+    align-items: center;
+}
+
+.filter-btn {
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 150ms ease, transform 100ms ease, box-shadow 150ms ease;
+    background: transparent;
+    color: #f7f7f7;
+}
+
+.filter-btn--primary {
+    background: linear-gradient(135deg,#667eea,#764ba2);
+    color: white;
+    border-color: rgba(0,0,0,0.06);
+    box-shadow: 0 6px 18px rgba(102,126,234,0.08);
+}
+
+.filter-btn--ghost {
+    background: transparent;
+    color: #667eea;
+    border: 1px solid rgba(102,126,234,0.12);
+}
+
+.filter-select:focus, .filter-btn:focus {
+    outline: 3px solid rgba(102,126,234,0.18);
+    outline-offset: 2px;
+}
+
+@media (max-width: 800px) {
+    .filter-toolbar {
+        align-items: stretch;
+    }
+    .filter-row {
+        min-width: 100%;
+    }
+    .filter-actions {
+        margin-left: 0;
+        width: 100%;
+        justify-content: space-between;
+    }
+}
