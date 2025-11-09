@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // NEW: Handle the click for the "Find Past Launches" button
     launchesContainer.addEventListener('click', handleCompareClick);
+    // NEW: Handle the click for the "Read More" mission toggle
+    launchesContainer.addEventListener('click', handleToggleMission);
 
     // --- Helper Functions ---
 
@@ -61,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <a href="/previous" class="nav-image-button launch-card">
                 <img src="{{ url_for('static', filename='img/past_missions_default.jpg') }}" 
                      alt="Previous Launches Dashboard">
-                <span>Explore Past Missions 🚀</span>
+                <span>Explore Past Missions</span>
             </a>
         `;
     }
@@ -85,10 +87,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Truncate mission description if it's too long
         const maxDescriptionLength = 200;
-        const truncatedMission = mission.length > maxDescriptionLength
+        let missionHtml;
+
+        /*const truncatedMission = mission.length > maxDescriptionLength
             ? mission.substring(0, maxDescriptionLength) + '...'
             : mission;
+        */
 
+            if (mission.length > maxDescriptionLength) {
+                // Text is long, create truncated and full versions
+                const truncatedMission = mission.substring(0, maxDescriptionLength) + '...';
+                missionHtml = `
+                    <div class="mission-description">
+                        <strong>Mission:</strong>
+                        <p class="mission-text-short">${truncatedMission}</p>
+                        <p class="mission-text-full" style="display: none;">${mission}</p>
+                        <a href="#" class="toggle-mission-btn">Read More</a>
+                    </div>
+                `;
+            } else {
+                // Text is short, just display it
+                missionHtml = `
+                    <div class="mission-description">
+                        <strong>Mission:</strong>
+                        <p>${mission}</p>
+                    </div>
+                `;
+            }
         // Build the HTML for this launch card
         return `
             <div class="launch-card">
@@ -110,10 +135,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <span>${location}</span>
                 </div>
                 
-                <div class="mission-description">
-                    <strong>Mission:</strong>
-                    <p>${truncatedMission}</p>
-                </div>
+                ${missionHtml}
 
                 <button class="compare-btn" data-location-id="${locationId}" data-launch-name="${name}">
                     Find Past Launches from this Site 🔎
@@ -121,6 +143,40 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
     }
+
+
+    /**
+     * Handles clicks on the "Read More" / "Show Less" mission toggle.
+     */
+    function handleToggleMission(event) {
+        const target = event.target;
+        // Check if the clicked element is a toggle button
+        if (!target.classList.contains('toggle-mission-btn')) return;
+
+        event.preventDefault(); // Stop the <a> tag's default action
+
+        // Find the parent .mission-description container
+        const descriptionContainer = target.closest('.mission-description');
+        if (!descriptionContainer) return;
+
+        const shortText = descriptionContainer.querySelector('.mission-text-short');
+        const fullText = descriptionContainer.querySelector('.mission-text-full');
+
+        // Check the display style of the full text to see current state
+        if (fullText.style.display === 'none') {
+            // We are currently truncated, so expand
+            fullText.style.display = 'block';
+            shortText.style.display = 'none';
+            target.textContent = 'Show Less';
+        } else {
+            // We are currently expanded, so truncate
+            fullText.style.display = 'none';
+            shortText.style.display = 'block';
+            target.textContent = 'Read More';
+        }
+    }
+
+
 
     /**
      * Handles clicks on the "Find Past Launches" button, redirecting and passing the filter.
