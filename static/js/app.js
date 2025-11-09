@@ -12,9 +12,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const errorElement = document.getElementById('error');
     const lastUpdateElement = document.getElementById('last-update');
 
-    // NEW: Handle the click for the "Find Past Launches" button
+    //Handle the click for the "Find Past Launches" button
     launchesContainer.addEventListener('click', handleCompareClick);
-    // NEW: Handle the click for the "Read More" mission toggle
+    //Handle the click for the "Read More" mission toggle
     launchesContainer.addEventListener('click', handleToggleMission);
     launchesContainer.addEventListener('click', handleShareClick);
 
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     });
-    // --- End Dropdown Menu Logic ---
+
 
     // --- Helper Functions ---
 
@@ -101,12 +101,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // We can re-parse the ISO string to get a clean UTC format.
         try {
             const startDate = new Date(windowStart);
-            
-            // Format the start time. .toISOString() is ALMOST correct, 
-            // but we need to remove hyphens, colons, and milliseconds.
             const googleStartDate = startDate.toISOString().replace(/[-:]|\.\d{3}/g, '');
 
-            // Let's create an end time (e.g., 1 hour after start) as a fallback
             const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour later
             const googleEndDate = endDate.toISOString().replace(/[-:]|\.\d{3}/g, '');
 
@@ -142,17 +138,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const location = launch.pad?.location?.name || 'Unknown Location';
         const mission = launch.mission?.description || 'No mission description available.';
 
-        // NEW: Get the location ID to use as a filter parameter
+        // Get the location ID to use as a filter parameter
         const locationId = launch.pad?.location?.id;
 
         // Truncate mission description if it's too long
         const maxDescriptionLength = 200;
         let missionHtml;
-
-        /*const truncatedMission = mission.length > maxDescriptionLength
-            ? mission.substring(0, maxDescriptionLength) + '...'
-            : mission;
-        */
 
             if (mission.length > maxDescriptionLength) {
                 // Text is long, create truncated and full versions
@@ -175,11 +166,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 `;
             }
 
-            // --- NEW: Calendar Link Logic ---
+            // --- Calendar Link Logic ---
         const calendarLink = createGoogleCalendarLink(launch);
         let calendarButtonHtml = '';
         if (calendarLink) {
-            // We use <a> styled as a button. target="_blank" opens in new tab.
             calendarButtonHtml = `
                 <a href="${calendarLink}" 
                    target="_blank" 
@@ -189,11 +179,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 </a>
             `;
         }
-        // --- End of NEW Logic ---
 
 
         const localTime = (windowStart !== 'TBD') ? formatDate(windowStart) : 'TBD';
-                    // --- NEW: Share Button Data ---
+                    // --- Share Button Data ---
         // We pass the formatted local time to the share button
         const shareData = {
             name: name,
@@ -309,25 +298,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Get the launch data from the button's dataset
         const { name, provider, time } = target.dataset;
-
-        // --- THIS IS THE FIX ---
-        // Combine the text and URL into a single string.
-        // This ensures all apps (clipboard, SMS, X) receive the full message.
         const shareText = `Check out this launch: ${name} by ${provider} on ${time}. ${window.location.href}`;
 
         // Create the shareData object.
-        // We will pass EITHER this object (to navigator.share)
-        // OR just the shareText (to clipboard)
         const shareData = {
             //title: `Rocket Launch: ${name}`,
             text: shareText
             // By omitting the 'url' field, we force the share sheet
             // to use the 'text' field, which now contains the URL.
         };
-        // --- END OF FIX ---
 
 
-        // 1. Try using the modern Web Share API
+        //using the modern Web Share API
         if (navigator.share) {
             try {
                 // Pass the new object that only has .title and .text
@@ -338,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log('Share canceled or failed:', err);
             }
         } 
-        // 2. Fallback to clipboard for desktop
+        // Fallback to clipboard for desktop
         else if (navigator.clipboard) {
             try {
                 // Pass the new combined text
@@ -347,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Give user feedback
                 const originalText = target.textContent;
                 target.textContent = 'Copied to Clipboard!';
-                target.classList.add('copied'); // For styling
+                target.classList.add('copied');
 
                 setTimeout(() => {
                     target.textContent = originalText;
@@ -359,11 +341,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert('Failed to copy. Please copy the text manually.');
             }
         } 
-        // 3. Absolute fallback
+        // Absolute fallback
         else {
             alert('Sharing is not supported on this browser.');
         }
     }
+
+
     /**
      * Fetch launch data from our Flask backend and display it
      */
@@ -386,13 +370,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Hide loading indicator
                 loadingElement.style.display = 'none';
 
-                // 1. Create launch cards HTML
+                // Create launch cards HTML
                 const launchCardsHTML = data.results && data.results.length > 0
                     ? data.results.map(launch => createLaunchCard(launch)).join('')
                     : '';
 
 
-                // 3. Combine and display all content
+                // Combine and display all content
                 if (data.results && data.results.length > 0) {
                     // Create a card for each launch
                     const launchCards = data.results.map(launch => createLaunchCard(launch));
@@ -436,6 +420,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Fetch launches when the page loads
     fetchLaunches();
 
-    // Optionally, refresh data every 5 minutes (300000 milliseconds)
+    // refresh data every 5 minutes (300000 milliseconds)
     setInterval(fetchLaunches, 300000);
 });

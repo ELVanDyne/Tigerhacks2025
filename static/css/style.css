@@ -366,21 +366,21 @@ header h1 {
 
 /* Styling for the Source Card */
 .source-card {
-    background-color: #667eea;
-    color: white;
+    background-color: white;
+    color: #104d8e;
     position: relative;
-    border: 3px solid #f7f7f7;
+    border: 3px solid white;
     order: -1; /* Ensures it is the leftmost item in the grid */
     padding-top: 2rem;
 }
 
 .source-card .launch-name {
-    color: white;
+    color: #104d8e;
 }
 
 .source-card h3 {
     margin-top: 0.5rem;
-    color: #f7f7f7 !important;
+    color: #104d8e !important;
 }
 
 
