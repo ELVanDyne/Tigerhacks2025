@@ -18,6 +18,36 @@ document.addEventListener('DOMContentLoaded', function () {
     launchesContainer.addEventListener('click', handleToggleMission);
     launchesContainer.addEventListener('click', handleShareClick);
 
+    // --- Dropdown Menu Logic ---
+    const navButton = document.querySelector('.nav-btn');
+    const navContent = document.querySelector('.nav-dropdown-content');
+
+    if (navButton && navContent) {
+        navButton.addEventListener('click', function(event) {
+            // Stop the window click event from firing immediately
+            event.stopPropagation(); 
+            
+            // Toggle 'active' class on the button
+            navButton.classList.toggle('active');
+            // Toggle 'show' class on the content
+            navContent.classList.toggle('show');
+        });
+    }
+
+    // Close the dropdown if clicking anywhere else on the page
+    window.addEventListener('click', function(event) {
+        if (navContent && navButton) {
+            // Check if the click is outside the button AND outside the content
+            if (!navButton.contains(event.target) && !navContent.contains(event.target)) {
+                
+                // Remove classes to close the dropdown
+                navButton.classList.remove('active');
+                navContent.classList.remove('show');
+            }
+        }
+    });
+    // --- End Dropdown Menu Logic ---
+
     // --- Helper Functions ---
 
     /**
@@ -52,21 +82,6 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             return 'status-hold';
         }
-    }
-
-    /**
-     * Creates HTML for the Previous Launches navigation button card.
-     * @returns {string} HTML string for the image button card.
-     */
-    function createNavButtonHtml() {
-        // We reuse the 'launch-card' class to ensure it integrates with the grid.
-        return `
-            <a href="/previous" class="nav-image-button launch-card">
-                <img src="{{ url_for('static', filename='img/past_missions_default.jpg') }}" 
-                     alt="Previous Launches Dashboard">
-                <span>Explore Past Missions</span>
-            </a>
-        `;
     }
 
     /**
@@ -376,8 +391,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     ? data.results.map(launch => createLaunchCard(launch)).join('')
                     : '';
 
-                // 2. Inject the Navigation Button HTML
-                const navButtonHTML = createNavButtonHtml();
 
                 // 3. Combine and display all content
                 if (data.results && data.results.length > 0) {
@@ -402,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 } else {
                     // If no launches, display the button plus the 'No launches found' message
-                    launchesContainer.innerHTML = navButtonHTML +
+                    launchesContainer.innerHTML =
                         '<p style="color: white; text-align: center; grid-column: 1 / -1; margin-top: 2rem;">No upcoming launches found.</p>';
 
                     // Update the last updated time even if no launches are found
@@ -416,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 loadingElement.style.display = 'none';
                 errorElement.style.display = 'block';
                 // Display the nav button even on error, so users can still navigate
-                launchesContainer.innerHTML = createNavButtonHtml();
+                launchesContainer.innerHTML = '';
             });
     }
 

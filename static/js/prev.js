@@ -20,6 +20,35 @@ document.addEventListener('DOMContentLoaded', function () {
     const filterLocationId = urlParams.get('filter_location_id');
     const sourceLaunchName = urlParams.get('source_launch_name');
 
+    // --- Dropdown Menu Logic ---
+    const navButton = document.querySelector('.nav-btn');
+    const navContent = document.querySelector('.nav-dropdown-content');
+
+    if (navButton && navContent) {
+        navButton.addEventListener('click', function(event) {
+            // Stop the window click event from firing immediately
+            event.stopPropagation(); 
+            
+            // Toggle 'active' class on the button
+            navButton.classList.toggle('active');
+            // Toggle 'show' class on the content
+            navContent.classList.toggle('show');
+        });
+    }
+
+    // Close the dropdown if clicking anywhere else on the page
+    window.addEventListener('click', function(event) {
+        if (navContent && navButton) {
+            // Check if the click is outside the button AND outside the content
+            if (!navButton.contains(event.target) && !navContent.contains(event.target)) {
+                
+                // Remove classes to close the dropdown
+                navButton.classList.remove('active');
+                navContent.classList.remove('show');
+            }
+        }
+    });
+    // --- End Dropdown Menu Logic ---
 
     // --- Helper Functions ---
 

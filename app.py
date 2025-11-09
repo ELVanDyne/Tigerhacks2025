@@ -168,6 +168,12 @@ def get_previous_launches():
     return jsonify(data)
 
 
+
+@app.route('/simulation')
+def simulation():
+    return render_template('simulation.html')
+
+
 @app.route('/api/launches')
 def get_launches():
     """
