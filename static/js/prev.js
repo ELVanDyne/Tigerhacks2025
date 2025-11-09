@@ -52,6 +52,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Helper Functions ---
 
+    /**
+     * Get a CSS class based on launch status
+     * @param {string} status - Status name from API
+     * @returns {string} CSS class name
+     */
+    function getStatusClass(status) {
+        const statusLower = (status || '').toLowerCase(); // Added safety check
+        if (statusLower.includes('go') || statusLower.includes('success')) {
+            return 'status-go';
+        } else if (statusLower.includes('tbd') || statusLower.includes('to be')) {
+            return 'status-tbd';
+        } else {
+            return 'status-hold';
+        }
+    }
+
     function formatDate(dateString) {
         const date = new Date(dateString);
         const options = {
@@ -72,59 +88,42 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function createLaunchCard(launch) {
-        const name = launch.name || 'Unknown Mission';
-        const status = launch.status?.name || 'Unknown';
-        const windowStart = launch.window_start || launch.net || 'TBD';
-        const provider = launch.launch_service_provider?.name || 'Unknown Provider';
-        const mission = launch.mission?.description || 'No mission description available.';
-        const location = launch.pad?.location?.name || 'Unknown Location';
+    // REPLACE your createLaunchCard function in prev.js with this:
 
-        // Mission description handling (copied from app.js)
-        const maxDescriptionLength = 200;
-        let missionHtml;
-        if (mission.length > maxDescriptionLength) {
-            const truncatedMission = mission.substring(0, maxDescriptionLength) + '...';
-            missionHtml = `
-                <div class="mission-description">
-                    <strong>Mission:</strong>
-                    <p class="mission-text-short">${truncatedMission}</p>
-                    <p class="mission-text-full" style="display: none;">${mission}</p>
-                    <a href="#" class="toggle-mission-btn">Read More</a>
-                </div>
-            `;
-        } else {
-            missionHtml = `
-                <div class="mission-description">
-                    <strong>Mission:</strong>
-                    <p>${mission}</p>
-                </div>
-            `;
-        }
+function createLaunchCard(launch) {
+    const name = launch.name || 'Unknown Mission';
+    const status = launch.status?.name || 'Unknown';
+    const windowStart = launch.window_start || launch.net || 'TBD';
+    const provider = launch.launch_service_provider?.name || 'Unknown Provider';
+    const mission = launch.mission?.type || 'Unknown';
+    const location = launch.pad?.location?.name || 'Unknown Location';
 
-        return `
-            <div class="launch-card">
-                <h2 class="launch-name">${name}</h2>
-                <span class="status-badge ${getStatusClass(status)}">${status}</span>
-                
-                <div class="launch-detail">
-                    <strong>Launch Time:</strong>
-                    <span>${formatDate(windowStart)}</span>
-                </div>
-                
-                <div class="launch-detail">
-                    <strong>Provider:</strong>
-                    <span>${provider}</span>
-                </div>
-
-                <div class="launch-detail">
-                    <strong>Location:</strong>
-                    <span>${location}</span>
-                </div>
-
-                ${missionHtml}
+    return `
+        <div class="launch-card">
+            <h2 class="launch-name">${name}</h2>
+            <span class="status-badge ${getStatusClass(status)}">${status}</span>
+            
+            <div class="launch-detail">
+                <strong>Launch Time:</strong>
+                <span>${formatDate(windowStart)}</span>
             </div>
-        `;
+            
+            <div class="launch-detail">
+                <strong>Provider:</strong>
+                <span>${provider}</span>
+            </div>
+            
+            <div class="launch-detail">
+                <strong>Location:</strong>
+                <span>${location}</span>
+            </div>
+            
+            <div class="launch-detail">
+                <strong>Mission Type:</strong>
+                <span>${mission}</span>
+            </div>
+        </div>
+    `;
     }
 
     // NEW: Function to create the special "source" card 

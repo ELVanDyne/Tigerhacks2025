@@ -13,15 +13,21 @@
   </header>
 
   <div class="header-nav-group">
+    <div class="sim-button-container">
+      <a href="{{ url_for('simulation') }}" class="sim-btn-standalone">
+          Play Historical Simulation!
+      </a>
+    </div>
+    
     <div class="nav-dropdown">
         <button class="nav-btn">
             Previous Launches &nbsp;<span>&#9662;</span> </button>
         <div class="nav-dropdown-content">
             <a href="/">Upcoming Launches</a>
-            <a href="{{ url_for('simulation') }}">Space Odyssey</a>
         </div>
     </div>
   </div>
+
 
   <div class="filters filter-toolbar">
 

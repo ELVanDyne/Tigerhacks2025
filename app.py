@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 
 # Configuration
-LAUNCH_LIBRARY_API_URL = "https://lldev.thespacedevs.com/2.3.0/launches/upcoming/"
+LAUNCH_LIBRARY_API_URL = "https://lldev.thespacedevs.com/2.3.0/launches/upcoming/?limit=15"
 PREVIOUS_LAUNCHES_URL = "https://lldev.thespacedevs.com/2.3.0/launches/previous/"
 
 

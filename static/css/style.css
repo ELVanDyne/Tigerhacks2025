@@ -10,6 +10,10 @@
     box-sizing: border-box;
 }
 
+html {
+    background-color: #000;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #000000 0%, #000000 100%);
@@ -76,6 +80,8 @@ header h1 {
     cursor: pointer;
     transition: background-color 0.2s ease;
 
+    width: 200px;
+    box-sizing: border-box;
     /*Moves the button down */
 }
 
@@ -120,6 +126,8 @@ header h1 {
     border-radius: 6px;        /* The "constant radius" */
     margin: 4px;              /* Adds space between multiple links */
     transition: background-color 0.2s ease;
+    width: 200px;
+    box-sizing: border-box;
 }
 
 
@@ -175,7 +183,8 @@ header h1 {
     display: flex;
     flex-direction: column; /* Stack items vertically */
     gap: 10px;              /* Add 10px space BETWEEN items */
-    margin-top: 15px;
+    margin-top: auto;
+    padding-top: 15px;
 }
 
 /* Make both buttons and the link-button fill their space */
@@ -220,6 +229,40 @@ header h1 {
 .share-btn.copied {
     background-color: #28a745; /* Green for success */
     transform: scale(1.02); /* Subtle pulse effect */
+}
+
+/* --- NEW: Standalone Simulation Button --- */
+.sim-button-container {
+    position: relative;
+    /* This adds space between the sim button and nav button */
+    margin-bottom: 10px;
+}
+
+.sim-btn-standalone {
+    display: inline-block;
+    
+    /* --- Sizing from .nav-btn --- */
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 16px; 
+    width: 200px;
+    box-sizing: border-box;
+    
+    /* --- Your custom styles --- */
+    background: linear-gradient(135deg, #664ba2, #4a3777);
+    color: white;
+    text-decoration: none;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.sim-btn-standalone:hover {
+    background: linear-gradient(135deg, #7457b8, #5a4692);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
 }
 
 /* On small screens, stack the buttons */
@@ -304,6 +347,8 @@ header h1 {
     padding: 1.5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .launch-card:hover {
@@ -448,7 +493,7 @@ header h1 {
 
 /* Footer styling */
 footer {
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: transparent
     padding: 1.5rem;
     text-align: center;
     color: #666;
