@@ -176,7 +176,7 @@ function createLaunchCard(launch) {
         providers.forEach(p => filterProvider.innerHTML += `<option value="${p}">${p}</option>`);
         missionTypes.forEach(m => filterMissionType.innerHTML += `<option value="${m}">${m}</option>`);
 
-        // Populate the new location filter
+        // 🌟 Populate the new location filter
         populateLocationFilter();
     }
 
