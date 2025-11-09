@@ -7,20 +7,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const sortDate = document.getElementById('sort-date');
     const filterProvider = document.getElementById('filter-provider');
     const filterMissionType = document.getElementById('filter-mission-type');
-    // NEW: Location Filter Element
     const filterLocation = document.getElementById('filter-location');
-
-    // **EXISTING/NEW BUTTONS**
     const resetBtn = document.getElementById('reset-filter-btn');
 
     let allLaunches = [];
 
-    // NEW: Get URL parameters for pre-filtering (from Upcoming Launches page)
+    // Get URL parameters for pre-filtering (from Upcoming Launches page)
     const urlParams = new URLSearchParams(window.location.search);
     const filterLocationId = urlParams.get('filter_location_id');
     const sourceLaunchName = urlParams.get('source_launch_name');
 
-    // --- Dropdown Menu Logic ---
+    //for dropdown menu
     const navButton = document.querySelector('.nav-btn');
     const navContent = document.querySelector('.nav-dropdown-content');
 
@@ -48,25 +45,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     });
-    // --- End Dropdown Menu Logic ---
+    
 
-    // --- Helper Functions ---
+    //other stuff:
+    //(they all have names and are probably self explanatory)
 
     /**
      * Get a CSS class based on launch status
      * @param {string} status - Status name from API
      * @returns {string} CSS class name
      */
-    function getStatusClass(status) {
-        const statusLower = (status || '').toLowerCase(); // Added safety check
-        if (statusLower.includes('go') || statusLower.includes('success')) {
-            return 'status-go';
-        } else if (statusLower.includes('tbd') || statusLower.includes('to be')) {
-            return 'status-tbd';
-        } else {
-            return 'status-hold';
-        }
-    }
+
 
     function formatDate(dateString) {
         const date = new Date(dateString);
@@ -77,6 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return date.toLocaleDateString('en-US', options);
     }
 
+    //Different from app.js, as it shows success or failure
     function getStatusClass(status) {
         const statusLower = status.toLowerCase();
         if (statusLower.includes('success')) {
@@ -88,8 +78,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // REPLACE your createLaunchCard function in prev.js with this:
 
+//Create s the launch card html for each card displayed on screen
 function createLaunchCard(launch) {
     const name = launch.name || 'Unknown Mission';
     const status = launch.status?.name || 'Unknown';
@@ -126,7 +116,7 @@ function createLaunchCard(launch) {
     `;
     }
 
-    // NEW: Function to create the special "source" card 
+    // Function to create the special "source" card 
     function createSourceCard(name, locationId) {
         return `
             <div class="launch-card source-card" data-location-id="${locationId}">
@@ -135,14 +125,13 @@ function createLaunchCard(launch) {
                 <h3 style="color:#f7f7f7; margin-bottom:1rem;">${decodeURIComponent(name)}</h3>
                 
                 <p>Showing past launches from this site only.</p>
-                <p style="font-size:0.9rem; color:#ccc;">Click X to view all launches.</p>
+                <p style="font-size:0.9rem; color:#ccc;">Click X to view all previous launches.</p>
             </div>
         `;
     }
 
-    /**
-     * NEW: Populates the location filter dropdown with unique location names.
-     */
+    // Populates the location filter dropdown with unique location names.
+    
     function populateLocationFilter() {
         if (!filterLocation) return;
 
@@ -215,7 +204,7 @@ function createLaunchCard(launch) {
 
 
 
-        // **UPDATED FUNCTION:** Filter and render launches
+        // Filter and render launches
     function renderLaunches() {
         // The data is now pre-filtered by the backend. 
         // We just need to handle sorting and the source card.
@@ -309,7 +298,7 @@ function createLaunchCard(launch) {
             });
     }
 
-    // 🌟 NEW: Function to handle the "X" button reset
+    // Function to handle the "X" button reset
     function handleSourceCardReset(event) {
         if (event.target.id === 'source-card-reset-btn') {
             // Redirect to the /previous page without any URL parameters to reset
@@ -317,7 +306,7 @@ function createLaunchCard(launch) {
         }
     }
 
-    // 🌟 NEW: Function to handle the "Read More" toggle for mission descriptions
+    // Function to handle the "Read More" toggle for mission descriptions
     function handleToggleMission(event) {
         if (event.target.classList.contains('toggle-mission-btn')) {
             event.preventDefault();
@@ -350,9 +339,9 @@ function createLaunchCard(launch) {
         resetBtn.addEventListener('click', resetFilters);
     }
 
-    // 🌟 NEW: Listener for the Source Card's 'X' button
+    // Listener for the Source Card's 'X' button
     launchesContainer.addEventListener('click', handleSourceCardReset);
-    // 🌟 NEW: Listener for the "Read More" button
+    // Listener for the "Read More" button
     launchesContainer.addEventListener('click', handleToggleMission);
 
 

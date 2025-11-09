@@ -54,7 +54,7 @@ A web application that displays upcoming and recent space launches using the Lau
 The Flask backend does three main things:
 
 1. **Fetches Data**: Retrieves launch information from the Launch Library 2 API
-2. **Caches Data**: Saves the data locally for 1 hour to avoid hitting rate limits
+2. **Caches Data**: Saves the data for 5 minutes to avoid hitting rate limits
 3. **Serves API**: Provides a `/api/launches` endpoint for the frontend to fetch data
 
 ## Customization
