@@ -157,7 +157,6 @@ header h1 {
     display: block;
     width: 100%;
     padding: 10px;
-    margin-top: 15px;
     background-color: #104d8e;
     /* Primary blue for action */
     color: white;
@@ -180,39 +179,32 @@ header h1 {
 /* --- NEW: Card Button Group Styles --- */
 
 .card-button-group {
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    gap: 10px;              /* Add 10px space BETWEEN items */
     margin-top: 15px;
 }
 
 /* Make both buttons and the link-button fill their space */
 /* REPLACE your existing rule with this one */
 .calendar-btn,
-.compare-btn {
-    display: block;          /* This makes them stack */
-    width: 100%;             /* Full width of the card */
+.compare-btn,
+.share-btn {
+    display: block; /* Make sure <a> tags behave like buttons */
+    width: 100%;
     padding: 10px;
     border: none;
     border-radius: 6px;
     font-size: 0.9rem;
     font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    text-align: center;      /* Center the text */
+    transition: all 0.2s ease;
+    text-align: center;
 }
 
 /* Style for the "Find Past" button */
 /* Style for the "Add to Calendar" link (to look like a button) */
-.calendar-btn {
-    background-color: #28a745;
-    color: white;
-    text-decoration: none;
-    margin-bottom: 10px;
-}
-.compare-btn:hover {
-    background-color: #0056b3;
-    transform: translateY(-1px);
-}
 
-/* Style for the "Add to Calendar" link (to look like a button) */
 .calendar-btn {
     background-color: #19792f; /* Green for "add" */
     color: white;
@@ -221,6 +213,20 @@ header h1 {
 .calendar-btn:hover {
     background-color: #218838;
     transform: translateY(-1px);
+}
+
+.share-btn {
+    background-color: #6c757d; /* Neutral gray */
+    color: white;
+}
+.share-btn:hover {
+    background-color: #5a6268;
+}
+
+/* 4. Add "Copied" feedback style */
+.share-btn.copied {
+    background-color: #28a745; /* Green for success */
+    transform: scale(1.02); /* Subtle pulse effect */
 }
 
 /* On small screens, stack the buttons */
