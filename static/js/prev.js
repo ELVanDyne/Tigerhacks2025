@@ -61,22 +61,68 @@ document.addEventListener('DOMContentLoaded', function () {
         return date.toLocaleDateString('en-US', options);
     }
 
+    function getStatusClass(status) {
+        const statusLower = status.toLowerCase();
+        if (statusLower.includes('success')) {
+            return 'status-go'; // Re-using 'go' for success
+        } else if (statusLower.includes('failure')) {
+            return 'status-hold'; // Re-using 'hold' for failure
+        } else {
+            return 'status-tbd'; // Default/unknown
+        }
+    }
+
     function createLaunchCard(launch) {
         const name = launch.name || 'Unknown Mission';
         const status = launch.status?.name || 'Unknown';
         const windowStart = launch.window_start || launch.net || 'TBD';
         const provider = launch.launch_service_provider?.name || 'Unknown Provider';
-        const mission = launch.mission?.type || 'Unknown';
+        const mission = launch.mission?.description || 'No mission description available.';
         const location = launch.pad?.location?.name || 'Unknown Location';
+
+        // Mission description handling (copied from app.js)
+        const maxDescriptionLength = 200;
+        let missionHtml;
+        if (mission.length > maxDescriptionLength) {
+            const truncatedMission = mission.substring(0, maxDescriptionLength) + '...';
+            missionHtml = `
+                <div class="mission-description">
+                    <strong>Mission:</strong>
+                    <p class="mission-text-short">${truncatedMission}</p>
+                    <p class="mission-text-full" style="display: none;">${mission}</p>
+                    <a href="#" class="toggle-mission-btn">Read More</a>
+                </div>
+            `;
+        } else {
+            missionHtml = `
+                <div class="mission-description">
+                    <strong>Mission:</strong>
+                    <p>${mission}</p>
+                </div>
+            `;
+        }
 
         return `
             <div class="launch-card">
-                <h2>${name}</h2>
-                <p><strong>Status:</strong> ${status}</p>
-                <p><strong>Launch Time:</strong> ${formatDate(windowStart)}</p>
-                <p><strong>Provider:</strong> ${provider}</p>
-                <p><strong>Mission Type:</strong> ${mission}</p>
-                <p><strong>Location:</strong> ${location}</p>
+                <h2 class="launch-name">${name}</h2>
+                <span class="status-badge ${getStatusClass(status)}">${status}</span>
+                
+                <div class="launch-detail">
+                    <strong>Launch Time:</strong>
+                    <span>${formatDate(windowStart)}</span>
+                </div>
+                
+                <div class="launch-detail">
+                    <strong>Provider:</strong>
+                    <span>${provider}</span>
+                </div>
+
+                <div class="launch-detail">
+                    <strong>Location:</strong>
+                    <span>${location}</span>
+                </div>
+
+                ${missionHtml}
             </div>
         `;
     }
@@ -147,53 +193,34 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    // **UPDATED FUNCTION:** Resets all filter dropdowns to default and clears URL parameters
+    // **UPDATED FUNCTION:** Resets all filter dropdowns to default and fetches fresh data
     function resetFilters() {
-        // Clear URL parameters if they exist
-        if (filterLocationId) {
-            window.location.href = '/previous'; // Redirect to clear URL filters
+        // Clear URL parameters if they exist by redirecting
+        if (filterLocationId || new URLSearchParams(window.location.search).has('lsp__name')) {
+            window.location.href = '/previous';
             return;
         }
 
         // Reset all filter dropdowns to their 'All' option
         filterProvider.value = 'all';
-        filterMissionType.value = 'all';
-        if (filterLocation) filterLocation.value = 'all'; // 🌟 Reset location filter
+        if (filterLocation) filterLocation.value = 'all'; // Reset location filter
 
         // Reset the Sort by Date dropdown to 'Most Recent' (value: 'desc')
         if (sortDate) {
             sortDate.value = 'desc';
         }
 
-        // Trigger a re-render
-        renderLaunches();
+        // Trigger a fresh fetch from the API with default parameters
+        fetchPreviousLaunches();
     }
 
 
 
-    // **UPDATED FUNCTION:** Filter and render launches
+        // **UPDATED FUNCTION:** Filter and render launches
     function renderLaunches() {
+        // The data is now pre-filtered by the backend. 
+        // We just need to handle sorting and the source card.
         let filtered = [...allLaunches];
-
-        // 1. 🌟 URL Location Filter (Primary/Initial Filter)
-        if (filterLocationId) {
-            filtered = filtered.filter(l => String(l.pad?.location?.id) === filterLocationId);
-        }
-
-        // 2. 🌟 NEW: Dropdown Location Filter (Applied if no URL filter OR for secondary filtering)
-        const selectedLocation = filterLocation ? filterLocation.value : 'all';
-        if (!filterLocationId && selectedLocation !== 'all') { // Only use dropdown filter if URL filter is absent
-            filtered = filtered.filter(l => l.pad?.location?.name === selectedLocation);
-        }
-
-        // 3. Existing Dropdown Filtering
-        if (filterProvider.value !== 'all') {
-            filtered = filtered.filter(l => l.launch_service_provider?.name === filterProvider.value);
-        }
-        if (filterMissionType.value !== 'all') {
-            filtered = filtered.filter(l => l.mission?.type === filterMissionType.value);
-        }
-
 
         // Sort by date
         filtered.sort((a, b) => {
@@ -204,12 +231,12 @@ document.addEventListener('DOMContentLoaded', function () {
             return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
         });
 
-        // 4. Rendering
+        // Rendering
         const launchCardsHTML = filtered.map(createLaunchCard).join('');
 
         let finalHTML = '';
 
-        // 🌟 If we have a source launch name, prepend the source card
+        // If we have a source launch name, prepend the source card
         if (sourceLaunchName) {
             finalHTML = createSourceCard(sourceLaunchName, filterLocationId) + launchCardsHTML;
         } else {
@@ -234,17 +261,47 @@ document.addEventListener('DOMContentLoaded', function () {
         errorElement.style.display = 'none';
         launchesContainer.innerHTML = '';
 
-        fetch('/api/previous')
+        // Get filter values
+        const provider = filterProvider.value;
+        const locationName = filterLocation ? filterLocation.value : 'all';
+
+        // Find the location ID from the location name
+        let locationId = 'all';
+        if (locationName !== 'all') {
+            const selectedLaunch = allLaunches.find(l => l.pad?.location?.name === locationName);
+            if (selectedLaunch) {
+                locationId = selectedLaunch.pad.location.id;
+            }
+        }
+        
+        // If there's a URL-based location filter, it should take precedence
+        if (filterLocationId) {
+            locationId = filterLocationId;
+        }
+
+        // Build the query string
+        const params = new URLSearchParams({
+            lsp__name: provider,
+            location__ids: locationId,
+        });
+
+        fetch(`/api/previous?${params.toString()}`)
             .then(res => {
                 if (!res.ok) throw new Error('Network response not ok');
                 return res.json();
             })
             .then(data => {
-                allLaunches = data.results || [];
+                // If this is the first load, we need to populate filters.
+                // After the first load, we only update the displayed launches.
+                if (allLaunches.length === 0) {
+                    allLaunches = data.results || [];
+                    populateFilters(); // This will populate dropdowns with all possible options
+                } else {
+                    allLaunches = data.results || [];
+                }
+                
                 loadingElement.style.display = 'none';
-
-                populateFilters();
-                renderLaunches();
+                renderLaunches(); // Render the newly fetched and filtered data
             })
             .catch(err => {
                 console.error(err);
@@ -261,10 +318,32 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // 🌟 NEW: Function to handle the "Read More" toggle for mission descriptions
+    function handleToggleMission(event) {
+        if (event.target.classList.contains('toggle-mission-btn')) {
+            event.preventDefault();
+
+            const button = event.target;
+            const card = button.closest('.launch-card');
+            const shortText = card.querySelector('.mission-text-short');
+            const fullText = card.querySelector('.mission-text-full');
+
+            if (fullText.style.display === 'none') {
+                shortText.style.display = 'none';
+                fullText.style.display = 'block';
+                button.textContent = 'Read Less';
+            } else {
+                shortText.style.display = 'block';
+                fullText.style.display = 'none';
+                button.textContent = 'Read More';
+            }
+        }
+    }
+
 
     // Add event listeners for filters (change events)
-    [sortDate, filterProvider, filterMissionType, filterLocation].forEach(el => {
-        if (el) el.addEventListener('change', renderLaunches);
+    [sortDate, filterProvider, filterLocation].forEach(el => {
+        if (el) el.addEventListener('change', fetchPreviousLaunches);
     });
 
     // Event Listeners for buttons
@@ -274,6 +353,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 🌟 NEW: Listener for the Source Card's 'X' button
     launchesContainer.addEventListener('click', handleSourceCardReset);
+    // 🌟 NEW: Listener for the "Read More" button
+    launchesContainer.addEventListener('click', handleToggleMission);
 
 
     // Initial fetch

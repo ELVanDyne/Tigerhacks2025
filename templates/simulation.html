@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orion's Path: A Space Odyssey (Final)</title>
+<<<<<<< HEAD
     
+=======
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+>>>>>>> f77173d2728741a0502e4ed90a9f1bb616d21af5
     <style>
         /* --- CSS for Game Presentation --- */
         body {
@@ -27,13 +31,18 @@
             flex: 0 0 auto;
             width: 90%;
             max-width: 700px;
+<<<<<<< HEAD
             margin: 2rem auto; /* Center with margin */
             background-color: rgba(0, 0, 0, 0.5);
+=======
+            background-color: rgba(255, 0, 0, 0.5);
+>>>>>>> f77173d2728741a0502e4ed90a9f1bb616d21af5
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(200, 181, 181, 0.5);
             padding: 30px;
             border: 2px solid #333;
             position: relative;
+            margin-top: 10rem;
         }
 
         h1 {
@@ -151,6 +160,17 @@
 </head>
 <body style="background-image: url('https://i.pinimg.com/originals/d6/ac/ee/d6acee4c22b5fac9541f8a2a74e0eb83.gif'); background-size: cover; background-repeat: no-repeat; background-attachment: fixed;">
 
+    <div class="header-nav-group"></div>
+        <div class="nav-dropdown">
+            <button class="nav-btn">
+                Space Odyssey &nbsp;<span>&#9662;</span>
+            </button>
+            <div class="nav-dropdown-content">
+                <a href="{{ url_for('index') }}">Current Launches</a>
+                <a href="{{ url_for('previous') }}">Previous Launches</a>
+            </div>
+        </div>
+    </div>
 
 <div id="game-container">
     <h1>Orion's Path: A Space Odyssey</h1>
@@ -170,6 +190,25 @@
 
 
 <script>
+    const navButton = document.querySelector('.nav-btn');
+    const navContent = document.querySelector('.nav-dropdown-content');
+
+    if (navButton && navContent) {
+        navButton.addEventListener('click', function(event) {
+            event.stopPropagation(); 
+            navButton.classList.toggle('active');
+            navContent.classList.toggle('show');
+        });
+    }
+
+    window.addEventListener('click', function(event) {
+        if (navContent && navButton) {
+            if (!navButton.contains(event.target) && !navContent.contains(event.target)) {
+                navButton.classList.remove('active');
+                navContent.classList.remove('show');
+            }
+        }
+    });
     // --- JAVASCRIPT GAME LOGIC ---
     
     // =========================================================================

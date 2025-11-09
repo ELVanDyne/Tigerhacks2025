@@ -10,7 +10,7 @@
 <body>
     <!-- Main header of the page -->
     <header>
-        <h1>Space Mission Tracker Dashboard</h1>
+        <h1>Space Mission Tracker</h1>
         <p class="subtitle">Tracking upcoming space launches from around the world</p>
         
     </header>
@@ -21,6 +21,7 @@
                 Current Launches &nbsp;<span>&#9662;</span> </button>
             <div class="nav-dropdown-content">
                 <a href="/previous">Previous Launches</a>
+                <a href="{{ url_for('simulation') }}">Space Odyssey</a>
             </div>
         </div>
     </div>

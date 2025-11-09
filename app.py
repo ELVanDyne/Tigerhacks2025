@@ -5,7 +5,7 @@ This Flask application serves as the backend for the Space Mission Tracker.
 It fetches data from the Launch Library 2 API and caches it to avoid rate limits.
 """
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 import requests
 from datetime import datetime, timedelta
 import json
@@ -104,14 +104,27 @@ def fetch_launch_data():
         # Fall back to sample data if API is unavailable
         return load_sample_data()
 
-def fetch_previous_launch_data():
+def fetch_previous_launch_data(params=None):
     """
     Fetch previous (past) launch data from Launch Library 2 API.
     Falls back to sample data if API is unavailable.
     """
     try:
         print("Fetching previous launch data from API...")
-        response = requests.get(PREVIOUS_LAUNCHES_URL, timeout=10)
+        # Start with a default limit
+        api_params = {'limit': 18}
+        if params:
+            api_params.update(params)
+
+        # Prepare the request to get the full URL for logging
+        req = requests.Request('GET', PREVIOUS_LAUNCHES_URL, params=api_params)
+        prepared_req = req.prepare()
+        print(f"API Call: {prepared_req.url}")
+
+        # Send the request
+        with requests.Session() as s:
+            response = s.send(prepared_req, timeout=10)
+        
         response.raise_for_status()
         data = response.json()
         return data
@@ -134,12 +147,32 @@ def index():
 def previous():
     return render_template('previous.html')
 
-# filepath: /Users/tiyahjackman/Desktop/tiger hacks/Tigerhacks2025/app.py
-# ...existing code...
+@app.route('/api/previous')
+def get_previous_launches():
+    """
+    API endpoint to get previous launch data, with filtering.
+    """
+    # Get query parameters from the request
+    provider = request.args.get('lsp__name')
+    location_id = request.args.get('location__ids')
+
+    # Build params for the API call
+    params = {}
+    if provider and provider != 'all':
+        params['lsp__name'] = provider
+    if location_id and location_id != 'all':
+        params['location__ids'] = location_id
+    
+    # Fetch data using the modified function
+    data = fetch_previous_launch_data(params)
+    return jsonify(data)
+
+
+
 @app.route('/simulation')
 def simulation():
     return render_template('simulation.html')
-# ...existing code...
+
 
 @app.route('/api/launches')
 def get_launches():
@@ -169,15 +202,6 @@ def get_launches():
     if isinstance(data, dict):
         data['cached_timestamp'] = cached_ts
 
-    return jsonify(data)
-
-           
-@app.route('/api/previous')
-def get_previous_launches():
-    """
-    API endpoint to get previous launch data.
-    """
-    data = fetch_previous_launch_data()
     return jsonify(data)
 
 
