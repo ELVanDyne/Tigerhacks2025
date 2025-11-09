@@ -193,26 +193,25 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    // **UPDATED FUNCTION:** Resets all filter dropdowns to default and clears URL parameters
+    // **UPDATED FUNCTION:** Resets all filter dropdowns to default and fetches fresh data
     function resetFilters() {
-        // Clear URL parameters if they exist
-        if (filterLocationId) {
-            window.location.href = '/previous'; // Redirect to clear URL filters
+        // Clear URL parameters if they exist by redirecting
+        if (filterLocationId || new URLSearchParams(window.location.search).has('lsp__name')) {
+            window.location.href = '/previous';
             return;
         }
 
         // Reset all filter dropdowns to their 'All' option
         filterProvider.value = 'all';
-        filterMissionType.value = 'all';
-        if (filterLocation) filterLocation.value = 'all'; // 🌟 Reset location filter
+        if (filterLocation) filterLocation.value = 'all'; // Reset location filter
 
         // Reset the Sort by Date dropdown to 'Most Recent' (value: 'desc')
         if (sortDate) {
             sortDate.value = 'desc';
         }
 
-        // Trigger a re-render
-        renderLaunches();
+        // Trigger a fresh fetch from the API with default parameters
+        fetchPreviousLaunches();
     }
 
 
