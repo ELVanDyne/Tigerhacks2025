@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const sortDate = document.getElementById('sort-date');
     const filterProvider = document.getElementById('filter-provider');
     const filterMissionType = document.getElementById('filter-mission-type');
-    // NEW: Location Filter Element
+    // 🌟 NEW: Location Filter Element
     const filterLocation = document.getElementById('filter-location');
 
     // **EXISTING/NEW BUTTONS**
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let allLaunches = [];
 
-    // NEW: Get URL parameters for pre-filtering (from Upcoming Launches page)
+    // 🌟 NEW: Get URL parameters for pre-filtering (from Upcoming Launches page)
     const urlParams = new URLSearchParams(window.location.search);
     const filterLocationId = urlParams.get('filter_location_id');
     const sourceLaunchName = urlParams.get('source_launch_name');
@@ -126,7 +126,7 @@ function createLaunchCard(launch) {
     `;
     }
 
-    // NEW: Function to create the special "source" card 
+    // 🌟 NEW: Function to create the special "source" card 
     function createSourceCard(name, locationId) {
         return `
             <div class="launch-card source-card" data-location-id="${locationId}">
@@ -141,7 +141,7 @@ function createLaunchCard(launch) {
     }
 
     /**
-     * NEW: Populates the location filter dropdown with unique location names.
+     * 🌟 NEW: Populates the location filter dropdown with unique location names.
      */
     function populateLocationFilter() {
         if (!filterLocation) return;
@@ -187,7 +187,7 @@ function createLaunchCard(launch) {
         providers.forEach(p => filterProvider.innerHTML += `<option value="${p}">${p}</option>`);
         missionTypes.forEach(m => filterMissionType.innerHTML += `<option value="${m}">${m}</option>`);
 
-        // Populate the new location filter
+        // 🌟 Populate the new location filter
         populateLocationFilter();
     }
 
